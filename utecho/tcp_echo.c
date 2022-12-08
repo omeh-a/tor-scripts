@@ -3,6 +3,7 @@
 // 07/12/2022
 
 #include "utecho.h"
+#define MAX_CLIENTS 100
 
 void tcpEcho(int port, char buf[], int buf_size) {
     #ifdef DEBUG
