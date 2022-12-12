@@ -38,18 +38,29 @@ void tcpEcho(int port, char buf[], int buf_size) {
     // Server loop
     for (;;) {
         sockAddrLen = sizeof sockAddr;
-        
+        size_t num_bytes = 0; // Size of received message
+
         // Accept next client
         int client = accept(sock, (struct sockaddr *)&sockAddr, &sockAddrLen);
-        size_t num_bytes = recv(client, buf, BUFFER_SIZE, 0x0);
+        
+        // Receive until client releases
+        while ((num_bytes = recv(client, buf, BUFFER_SIZE, 0x0))) {
+            #ifdef DEBUG
+                
+                // Get IP address as string
+                struct sockaddr_in* ipv4 = (struct sockaddr_in*)&sockAddr;
+                struct in_addr ip = ipv4->sin_addr;
+                char ip_str[INET_ADDRSTRLEN];
+                inet_ntop( AF_INET, &ip, ip_str, INET_ADDRSTRLEN );
+                
+                // Echo message content
+                printf("%s : %.*s\n", ip_str, num_bytes, buf);
+            #endif
 
-        #ifdef DEBUG
-            // Echo message content
-            printf("msg: %.*s\n", num_bytes, buf);
-        #endif
+            // Reply
+            send(client, buf, num_bytes, 0x0);
+        }
 
-        // Reply
-        send(client, buf, num_bytes, 0x0);
 
         // Terminate connection
         close(client);

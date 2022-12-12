@@ -6,6 +6,7 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <arpa/inet.h>
 
 #define DEBUG 1
 #define BUFFER_SIZE 5000
