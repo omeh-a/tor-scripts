@@ -46,7 +46,6 @@ void tcpEcho(int port, char buf[], int buf_size) {
         // Receive until client releases
         while ((num_bytes = recv(client, buf, BUFFER_SIZE, 0x0))) {
             #ifdef DEBUG
-                
                 // Get IP address as string
                 struct sockaddr_in* ipv4 = (struct sockaddr_in*)&sockAddr;
                 struct in_addr ip = ipv4->sin_addr;
@@ -60,7 +59,6 @@ void tcpEcho(int port, char buf[], int buf_size) {
             // Reply
             send(client, buf, num_bytes, 0x0);
         }
-
 
         // Terminate connection
         close(client);

@@ -1,4 +1,4 @@
-// UDP echo, based on Peter's program.
+// UDP echo, just Peter's program modified to fit utecho.
 // Matt Rossouw
 // 07/12/2022
 
