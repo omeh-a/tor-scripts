@@ -1,7 +1,7 @@
 # tor-scripts
 Scripts for Linux Networking stuff
 
-This repo contains most of the stuff for my ToR project.
+This repo contains most of the stuff for my ToR project. This entire folder is structured to be a buildroot external tree target.
 
 ## utecho
 UDP / TCP echo.
