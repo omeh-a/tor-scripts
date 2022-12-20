@@ -50,3 +50,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+
+# ipbench
+rootfs_overlay/usr/ipbench_target/autom4te.cache/*
