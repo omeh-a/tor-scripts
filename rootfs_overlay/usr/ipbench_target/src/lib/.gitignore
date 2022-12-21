@@ -1,6 +1,0 @@
-.libs
-Makefile
-Makefile.in
-libipbench.la
-libipbench_la-microuptime.lo
-libipbench_la-util.lo

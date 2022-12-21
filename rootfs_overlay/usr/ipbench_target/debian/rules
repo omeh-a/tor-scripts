@@ -1,7 +1,0 @@
-#!/usr/bin/make -f
-%:
-	dh $@
-
-
-execute_before_dh_install::
-	mv debian/tmp/usr/lib/python3.9/site-packages debian/tmp/usr/lib/python3.9/dist-packages
