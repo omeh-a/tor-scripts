@@ -1,0 +1,11 @@
+{
+    "machines" : [
+        {"haswell3" : {
+                "isa" : "x86_64",
+                "soc" : "haswell",
+                "kernel_defconfig" : "x86_64",
+                "device_tree" : ""
+            }
+        }
+    ]
+}
