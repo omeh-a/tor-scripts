@@ -1,11 +1,11 @@
 {
-    "machines" : [
-        {"haswell3" : {
-                "isa" : "x86_64",
-                "soc" : "haswell",
-                "kernel_defconfig" : "x86_64",
-                "device_tree" : ""
-            }
-        }
-    ]
+    "haswell3" : {
+        "isa" : "x86_64",
+        "soc" : "haswell",
+        "kernel_defconfig" : "x86_64",
+        "device_tree" : "",
+        "ip" : "172.16.1.82",
+        "mac" : "34:17:eb:a5:57:64",
+        "forward" : "haswell3.iot.keg.cse.unsw.edu.au"
+    }
 }
