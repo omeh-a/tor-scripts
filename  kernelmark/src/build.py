@@ -13,7 +13,7 @@ from error import *
 def build(machine, kernel_ver):
     # Check if this kernel version has already been built
     if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}") \
-            and len(os.listdir(f"{out_dir}/{machine.name}/{kernel_ver}")) > 0:
+            and os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/bzImage"):
         print(f"Kernel version {kernel_ver} already built for {machine.name}.")
         return 0
     else:
@@ -25,7 +25,8 @@ def build(machine, kernel_ver):
             os.mkdir(f"{out_dir}/{machine.name}/{kernel_ver}")
 
     # Load buildroot configuration
-    os.remove(f"{br_dir}/.config")
+    if os.path.exists(f"{br_conf_dir}/{machine.name}.config"):
+        os.remove(f"{br_dir}/.config")
     os.cp(f"{br_conf_dir}/{machine.name}.config", f"{br_dir}/.config")
 
     # Invoke kernel build

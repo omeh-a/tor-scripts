@@ -49,7 +49,7 @@ def test(machine, kernel_ver):
         f = logfile(machine, kernel_ver, "iperf3-unidir-udp-1g")
         os.system(f"iperf3 -c {machine.ip} i 10 -t 30 -P 10 -b 100M -d -u --logfile {f}")
 
-        print("Done testing. Exiting child process."")
+        print("Done testing. Exiting child process.")
 
         exit(0)
     else:
@@ -67,3 +67,4 @@ if __name__ == "__main__":
     mf = json.load(open("../conf/machines.json"))
     m = Machine("haswell3", mf["haswell3"])
     test(m, "5.19.17")
+    exit()

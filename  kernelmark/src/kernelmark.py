@@ -80,6 +80,7 @@ def main():
                 print(f"Kernel version {kernel} failed to build. Continuing")
                 num_fails += 1
                 failed_builds +=1
+                continue
 
             # Summon test process first, since we want to keep the status of the deployment
             # in the parent thread (because failing to deploy is a fatal error and should stop us)
