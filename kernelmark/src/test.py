@@ -6,10 +6,13 @@
 
 import json
 import os
+import socket
 import time
 from build import out_dir
 from error import *
 from machine import Machine
+
+MAX_RETRIES = 30
 
 def test(machine, kernel_ver):
     # Fork process, returning main thread
@@ -20,6 +23,21 @@ def test(machine, kernel_ver):
 
     if pid == 0:
         # Child process
+        # Start by waiting until the system is booted by trying to send
+        # a UDP packet to port 1345 until it succeeds.
+        print("Waiting for system to boot...")
+        while True:
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                sock.sendto(b"Emu", (machine.ip, 1345))
+                break
+            except socket.error:
+                time.sleep(5)
+                continue
+        
+        # Server is ready. Wait again to give iperf time to start
+        time.sleep(3)
+        
         # ipbench is cooked, so skip that part and just do iperf3 for now
 
         # Invoke iperf3
