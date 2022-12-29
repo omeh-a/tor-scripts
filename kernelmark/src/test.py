@@ -13,7 +13,11 @@ from machine import Machine
 
 def test(machine, kernel_ver):
     # Fork process, returning main thread
-    pid = os.fork()
+    if __name__ != "__main__":
+        pid = os.fork()
+    else:
+        pid = 0
+
     if pid == 0:
         # Child process
         # ipbench is cooked, so skip that part and just do iperf3 for now
@@ -21,35 +25,35 @@ def test(machine, kernel_ver):
         # Invoke iperf3
         # Bidirectional TCP traffic 1 Gbps
         f = logfile(machine, kernel_ver, "iperf3-bidir-tcp-1g")
-        os.system(f"iperf3 -c {machine.ip} i 10 -t 30 -P 10 -b 100M -d --bidir --logfile {f}")
+        os.system(f"iperf3 -c {machine.ip} i 10 -t 30 -P 10 -b 100M --bidir --logfile {f}")
         
         # Sleep between calls because we need to spin up a fresh server between runs
         time.sleep(3)
 
         # Birectional UDP traffic 1 Gbps
         f = logfile(machine, kernel_ver, "iperf3-bidir-udp-1g")
-        os.system(f"iperf3 -c {machine.ip} i 10 -t 30 -P 10 -b 100M -d --bidir --logfile {f}")
+        os.system(f"iperf3 -c {machine.ip} i 10 -t 30 -P 10 -b 100M --bidir --logfile {f}")
         time.sleep(3)
 
         # Bidirectional TCP traffic 100 Mbps
         f = logfile(machine, kernel_ver, "iperf3-bidir-tcp-100m")
-        os.system(f"iperf3 -c {machine.ip} i 10 -t 10 -P 10 -b 100M -d --bidir --logfile {f}")
+        os.system(f"iperf3 -c {machine.ip} i 10 -t 10 -P 10 -b 100M --bidir --logfile {f}")
         time.sleep(3)
 
         # Bidirectional UDP traffic 100 Mbps
         f = logfile(machine, kernel_ver, "iperf3-bidir-udp-100m")
-        os.system(f"iperf3 -c {machine.ip} i 10 -t 10 -P 10 -b 100M -d --bidir -u --logfile {f}")
+        os.system(f"iperf3 -c {machine.ip} i 10 -t 10 -P 10 -b 100M --bidir -u --logfile {f}")
         time.sleep(3)
         
         # Unidirectional TCP traffic 1 Gbps
         f = logfile(machine, kernel_ver, "iperf3-unidir-tcp-1g")
-        os.system(f"iperf3 -c {machine.ip} i 10 -t 30 -P 10 -b 100M -d --logfile {f}")
+        os.system(f"iperf3 -c {machine.ip} i 10 -t 30 -P 10 -b 100M --logfile {f}")
 
         # Unidirectional UDP traffic 1 Gbps
         f = logfile(machine, kernel_ver, "iperf3-unidir-udp-1g")
-        os.system(f"iperf3 -c {machine.ip} i 10 -t 30 -P 10 -b 100M -d -u --logfile {f}")
+        os.system(f"iperf3 -c {machine.ip} i 10 -t 30 -P 10 -b 100M -u --logfile {f}")
 
-        print("Done testing. Exiting child process."")
+        print("Done testing. Exiting child process.")
 
         exit(0)
     else:
