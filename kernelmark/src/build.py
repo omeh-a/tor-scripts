@@ -25,14 +25,9 @@ def build(machine, kernel_ver):
             os.mkdir(f"{out_dir}/{machine.name}/{kernel_ver}")
 
     # Load buildroot configuration
-<<<<<<< HEAD: kernelmark/src/build.py
     if os.path.exists(f"{br_conf_dir}/{machine.name}.config"):
         os.remove(f"{br_dir}/.config")
     os.cp(f"{br_conf_dir}/{machine.name}.config", f"{br_dir}/.config")
-=======
-    os.system(f"rm {br_dir}/.config")
-    os.system(f"cp {br_conf_dir}/{machine.name}.config {br_dir}/.config")
->>>>>>> d41c9a9807f50f95376f15a2c947ad42bdc46d84:kernelmark/src/build.py
 
     # Invoke kernel build
     os.chdir(f"{br_dir}/")

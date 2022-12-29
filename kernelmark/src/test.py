@@ -71,7 +71,4 @@ if __name__ == "__main__":
     mf = json.load(open("../conf/machines.json"))
     m = Machine("haswell3", mf["haswell3"])
     test(m, "5.19.17")
-<<<<<<< HEAD: kernelmark/src/test.py
     exit()
-=======
->>>>>>> d41c9a9807f50f95376f15a2c947ad42bdc46d84:kernelmark/src/test.py
