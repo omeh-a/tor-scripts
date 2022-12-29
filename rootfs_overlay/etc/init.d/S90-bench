@@ -4,6 +4,29 @@ udhcpc
 # cd /usr/ipbench_target/
 echo "DHCP leased."
 export PYTHONPATH=/usr/lib/python3.10/site-packages
-echo "Ready for ipbench connection..."
+# echo "Ready for ipbench connection..."
 # ipbenchd --target
-echo "ALL DONE"
+
+echo "Beginning iperf3 tests"
+
+
+echo "Bidirectional TCP 1G"
+iperf3 -s -1
+
+
+echo "Bidirectional UCP 1G"
+iperf3 -s -1
+
+echo "Bidirectional TCP 100M"
+iperf3 -s -1
+
+echo "Bidirectional UDP 100M"
+iperf3 -s -1
+
+echo "Unidirectional TCP 1G"
+iperf3 -s -1
+
+echo "Unidirectional UDP 1G"
+iperf3 -s -1
+
+echo "Ostritch"

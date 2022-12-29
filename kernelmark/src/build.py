@@ -25,9 +25,14 @@ def build(machine, kernel_ver):
             os.mkdir(f"{out_dir}/{machine.name}/{kernel_ver}")
 
     # Load buildroot configuration
+<<<<<<< HEAD: kernelmark/src/build.py
     if os.path.exists(f"{br_conf_dir}/{machine.name}.config"):
         os.remove(f"{br_dir}/.config")
     os.cp(f"{br_conf_dir}/{machine.name}.config", f"{br_dir}/.config")
+=======
+    os.system(f"rm {br_dir}/.config")
+    os.system(f"cp {br_conf_dir}/{machine.name}.config {br_dir}/.config")
+>>>>>>> d41c9a9807f50f95376f15a2c947ad42bdc46d84:kernelmark/src/build.py
 
     # Invoke kernel build
     os.chdir(f"{br_dir}/")
@@ -36,8 +41,8 @@ def build(machine, kernel_ver):
         os.chdir(script_dir)
         return ERR_B_BUILDROOT_DIED
 
-    os.cp("output/images/bzImage", f"{out_dir}/{machine.name}/{kernel_ver}/")
-    os.cp("output/images/rootfs.cpio", f"{out_dir}/{machine.name}/{kernel_ver}/")
+    os.system("cp output/images/bzImage {out_dir}/{machine.name}/{kernel_ver}/")
+    os.system("cp output/images/rootfs.cpio {out_dir}/{machine.name}/{kernel_ver}/")
 
     os.chdir(script_dir)
     return 0
