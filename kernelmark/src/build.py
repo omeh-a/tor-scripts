@@ -25,14 +25,14 @@ def build(machine, kernel_ver):
             os.mkdir(f"{out_dir}/{machine.name}/{kernel_ver}")
 
     # Load buildroot configuration
-    if os.path.exists(f"{br_conf_dir}/{machine.name}.config"):
+    if os.path.exists(f"{br_conf_dir}/{machine.name}/.config"):
         os.remove(f"{br_dir}/.config")
-    os.cp(f"{br_conf_dir}/{machine.name}.config", f"{br_dir}/.config")
+    os.system(f"cp {br_conf_dir}/{machine.name}.config {br_dir}/.config")
 
     # Invoke kernel build
     os.chdir(f"{br_dir}/")
-    os.system("make clean")
-    if os.system(f"make > {script_dir + out_dir}/{machine.name}/{kernel_ver}/build.log"):
+#    os.system("make clean")
+    if os.system(f"make > {script_dir[:len(script_dir) -3] + out_dir[2:]}/{machine.name}/{kernel_ver}/build.log"):
         os.chdir(script_dir)
         return ERR_B_BUILDROOT_DIED
 

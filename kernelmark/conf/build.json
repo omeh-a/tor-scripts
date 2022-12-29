@@ -1,5 +1,5 @@
 {
     "buildroot-dir" : "/home/mattr/util/buildroot-2022.02.7",
     "output-dir" : "../output",
-    "br-conf-dir" : "../../br_configs"
+    "br-conf-dir" : "../br_configs"
 }
