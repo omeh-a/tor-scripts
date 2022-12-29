@@ -7,9 +7,12 @@
 import sys
 import json
 import os
+
+import deploy
 from machine import *
 import build
 from error import *
+import test
 
 NUM_ARGS = 2    # mandatory arguments
 MAX_FAILS = 3   # maximum number of consecutive build failures
@@ -20,6 +23,12 @@ def usage():
     exit()
 
 def main():
+    successful_builds = 0
+    failed_builds = 0
+
+    if os.name != "posix":
+        print("This tool is only supported on POSIX systems.")
+        exit()
 
     # Collect commandline arguments
     if (len(sys.argv) < NUM_ARGS + 1):
@@ -52,7 +61,7 @@ def main():
             print(f"Unknown flag: {sys.argv[i]} - continuing.")
 
 
-    num_fails = 0
+    num_fails = 0 # consequetive build failures - if this exceeds MAX_FAILS, we stop
 
     # Main loop
     for major in kernels:
@@ -65,10 +74,23 @@ def main():
 
             if status == ERR_OK:
                 print(f"Kernel version {kernel} built successfully.")
+                successful_builds += 1
                 num_fails = 0
             else:
                 print(f"Kernel version {kernel} failed to build. Continuing")
                 num_fails += 1
-        
+                failed_builds +=1
+
+            # Summon test process first, since we want to keep the status of the deployment
+            # in the parent thread (because failing to deploy is a fatal error and should stop us)
+            tester_pid = test.test(m, kernel)
+            status = deploy.deploy(m, kernel)
+            if status:
+                print_err(status)
+                os.kill(tester_pid)
+                exit()
+
+    print(f"Kernel testing complete! {successful_builds} successful out of {successful_builds + failed_builds} builds.")
+
 if __name__ == "__main__":
     main()
