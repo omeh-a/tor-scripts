@@ -1,4 +1,4 @@
-config BR2_PACKAGE_TESTER_WAIT
+config BR2_PACKAGE_TESTERWAIT
 	bool "tester_wait"
 	help
 	  
