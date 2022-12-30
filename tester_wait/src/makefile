@@ -5,6 +5,6 @@ DEPS =
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-tester_wait: wait.o
-	$(CC) -o tester_wait wait.o
+tester_wait: tester_wait.o
+	$(CC) -o tester_wait tester_wait.o
 
