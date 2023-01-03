@@ -29,15 +29,16 @@ def build(machine, kernel_ver):
         os.remove(f"{br_dir}/.config")
     os.system(f"cp {br_conf_dir}/{machine.name}.config {br_dir}/.config")
 
+    print("No existing kernel build found for this version. Building.")
     # Invoke kernel build
     os.chdir(f"{br_dir}/")
 #    os.system("make clean")
-    if os.system(f"make > {script_dir[:len(script_dir) -3] + out_dir[2:]}/{machine.name}/{kernel_ver}/build.log"):
+    if os.system(f"make"):
         os.chdir(script_dir)
         return ERR_B_BUILDROOT_DIED
 
-    os.system("cp output/images/bzImage {out_dir}/{machine.name}/{kernel_ver}/")
-    os.system("cp output/images/rootfs.cpio {out_dir}/{machine.name}/{kernel_ver}/")
+    os.system(f"cp output/images/bzImage {out_dir}/{machine.name}/{kernel_ver}/")
+    os.system(f"cp output/images/rootfs.cpio {out_dir}/{machine.name}/{kernel_ver}/")
 
     os.chdir(script_dir)
     return 0

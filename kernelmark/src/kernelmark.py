@@ -66,6 +66,7 @@ def main():
     # Main loop
     for major in kernels:
         for kernel in kernels[major]:
+            print(f"### STARTING TEST: kernel {kernel} ###")
             if (num_fails >= MAX_FAILS):
                 print("Too many consecutive build failures! Last unsuccessful build was v" + kernel + ".")
                 exit()

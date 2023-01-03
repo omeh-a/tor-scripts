@@ -3,9 +3,12 @@
 udhcpc
 # cd /usr/ipbench_target/
 echo "DHCP leased."
-export PYTHONPATH=/usr/lib/python3.10/site-packages
+export PYTHONPATH=/usr/lib/python3.10/site-packagesgit 
 # echo "Ready for ipbench connection..."
 # ipbenchd --target
+
+echo "Awaiting tester connection"
+python3 /usr/tester_wait_py/testerwait.py
 
 echo "Beginning iperf3 tests"
 
