@@ -13,6 +13,7 @@ from machine import *
 import build
 from error import *
 import test
+from signal import signal, SIGINT
 
 NUM_ARGS = 2    # mandatory arguments
 MAX_FAILS = 3   # maximum number of consecutive build failures
@@ -29,6 +30,9 @@ def main():
     if os.name != "posix":
         print("This tool is only supported on POSIX systems.")
         exit()
+
+    # Register signal handler for interrupt
+    signal(SIGINT, interrupt_handler)
 
     # Collect commandline arguments
     if (len(sys.argv) < NUM_ARGS + 1):
@@ -51,12 +55,18 @@ def main():
     kernels_file = sys.argv[2]
     kernels = json.load(open(kernels_file))
 
+    skipdone = False
+    buildonly = False
     # Collect remaining flags
     for i in range (NUM_ARGS + 1, len(sys.argv)):
         if sys.argv[i] == "hardclean":
             build.nuke_output()
         elif sys.argv[i] == "clean":
             build.clean(m.name)
+        elif sys.argv[i] == "skipdone":
+            skipdone = True
+        elif sys.argv[i] == "buildonly":
+            buildonly = True
         else:
             print(f"Unknown flag: {sys.argv[i]} - continuing.")
 
@@ -65,22 +75,38 @@ def main():
 
     # Main loop
     for major in kernels:
+        first_major = False # DISABLED - Need to make clean to get new kernel headers
         for kernel in kernels[major]:
-            print(f"### STARTING TEST: kernel {kernel} ###")
+            alert(f"\033[01m ### STARTING TEST: kernel {kernel} ###\033[00m")
             if (num_fails >= MAX_FAILS):
-                print("Too many consecutive build failures! Last unsuccessful build was v" + kernel + ".")
+                alert("Too many consecutive build failures! Last unsuccessful build was v" + kernel + ".")
                 exit()
             
-            status = build.build(m, kernel)
+            status = build.build(m, kernel, first_major)
 
             if status == ERR_OK:
-                print(f"Kernel version {kernel} built successfully.")
+                alert(f"Kernel version {kernel} built successfully.")
                 successful_builds += 1
                 num_fails = 0
             else:
-                print(f"Kernel version {kernel} failed to build. Continuing")
-                num_fails += 1
-                failed_builds +=1
+                sub_status = ERR_OK
+                if not first_major:
+                    alert(f"Kernel version {kernel} failed to build. Retrying with make clean.")
+                    sub_status = build.build(m, kernel, True)
+                if sub_status != ERR_OK:
+                    alert(f"Kernel version {kernel} failed to build. Continuing")
+                    num_fails += 1
+                    failed_builds +=1
+                    continue
+            
+            first_major = False
+
+            if buildonly:
+                alert("Not testing because buildonly enabled!")
+                continue
+
+            if skipdone and build.kernel_built(m, kernel) and test.tests_exist(m, kernel):
+                alert(f"Skipping test on kernel {kernel} because it is already built and a test has run.")
                 continue
 
             # Summon test process first, since we want to keep the status of the deployment
@@ -91,8 +117,19 @@ def main():
                 print_err(status)
                 os.kill(tester_pid)
                 exit()
+            
 
     print(f"Kernel testing complete! {successful_builds} successful out of {successful_builds + failed_builds} builds.")
+
+
+def alert(s): print("\033[91m {}\033[00m" .format(s))
+
+def interrupt_handler(signal_received, frame):
+    """
+    Handle ctrl+C
+    """
+    alert("SIGINT received. Exiting")
+    exit()
 
 if __name__ == "__main__":
     main()

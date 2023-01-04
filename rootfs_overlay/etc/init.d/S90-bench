@@ -16,7 +16,6 @@ echo "Beginning iperf3 tests"
 echo "Bidirectional TCP 1G"
 iperf3 -s -1
 
-
 echo "Bidirectional UCP 1G"
 iperf3 -s -1
 

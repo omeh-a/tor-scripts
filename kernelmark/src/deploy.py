@@ -11,6 +11,7 @@ from machine import Machine
 
 def deploy(machine, kernel_ver):
     # Invoke mq.sh
+    os.system(f"mq.sh sem -signal {machine.name}")
     result = os.system(f"mq.sh run -c \"Ostritch\" -s {machine.name} -L \
         -f {out_dir}/{machine.name}/{kernel_ver}/bzImage \
             -f {out_dir}/{machine.name}/{kernel_ver}/rootfs.cpio")

@@ -64,36 +64,36 @@ def test(machine, kernel_ver):
 
         # Invoke iperf3
 
-        iperf_common = f"-c {machine.ip} i 10 -t 30 -P 10 --connect-timeout 5000"
+        iperf_common = f"-c {machine.ip} i 10 -t 30 -J --connect-timeout 5000"
 
-        # Bidirectional TCP traffic 1 Gbps
-        f = logfile(machine, kernel_ver, "iperf3-bidir-tcp-1g")
-        os.system(f"iperf3 {iperf_common} -b 1000M --bidir --logfile {f}")
+        # Bidirectional TCP traffic 1 Gbps 10 threads
+        f = logfile(machine, kernel_ver, "iperf3-bidir-tcp-1g-10P")
+        os.system(f"iperf3 {iperf_common} -b 1000M -P 10--bidir --logfile {f}")
         
         # Sleep between calls because we need to spin up a fresh server between runs
         time.sleep(3)
 
-        # Birectional UDP traffic 1 Gbps
-        f = logfile(machine, kernel_ver, "iperf3-bidir-udp-1g")
+        # Birectional UDP traffic 1 Gbps 10 threads
+        f = logfile(machine, kernel_ver, "iperf3-bidir-udp-1g-10P")
         os.system(f"iperf3 {iperf_common} -b 1000M --bidir -u --logfile {f}")
         time.sleep(3)
 
-        # Bidirectional TCP traffic 100 Mbps
-        f = logfile(machine, kernel_ver, "iperf3-bidir-tcp-100m")
-        os.system(f"iperf3 {iperf_common} -b 100M --bidir --logfile {f}")
+        # Bidirectional TCP traffic 100 Mbps 100 threads
+        f = logfile(machine, kernel_ver, "iperf3-bidir-tcp-100m-100P")
+        os.system(f"iperf3 {iperf_common} -b 100M  -P 100 --bidir --logfile {f}")
         time.sleep(3)
 
-        # Bidirectional UDP traffic 100 Mbps
-        f = logfile(machine, kernel_ver, "iperf3-bidir-udp-100m")
-        os.system(f"iperf3 {iperf_common} -b 100M --bidir -u --logfile {f}")
+        # Bidirectional UDP traffic 100 Mbps 100 threads
+        f = logfile(machine, kernel_ver, "iperf3-bidir-udp-100m-100P")
+        os.system(f"iperf3 {iperf_common} -b 100M -P 100 --bidir -u --logfile {f}")
         time.sleep(3)
         
-        # Unidirectional TCP traffic 1 Gbps
-        f = logfile(machine, kernel_ver, "iperf3-unidir-tcp-1g")
+        # Unidirectional TCP traffic 1 Gbps 1 thread
+        f = logfile(machine, kernel_ver, "iperf3-unidir-tcp-1g-1T")
         os.system(f"iperf3 {iperf_common} -b 1000M --logfile {f}")
 
-        # Unidirectional UDP traffic 1 Gbps
-        f = logfile(machine, kernel_ver, "iperf3-unidir-udp-1g")
+        # Unidirectional UDP traffic 1 Gbps 1 thread
+        f = logfile(machine, kernel_ver, "iperf3-unidir-udp-1g-1T")
         os.system(f"iperf3 {iperf_common} -b 1000M -u --logfile {f}")
 
         print("Done testing. Exiting child process.")
@@ -108,6 +108,11 @@ def logfile(machine, kernel_ver, title):
         os.remove(f"{out_dir}/{machine.name}/{kernel_ver}/{title}.log")
     os.system(f"echo \"{title}\" > {out_dir}/{machine.name}/{kernel_ver}/{title}.log")
     return f"{out_dir}/{machine.name}/{kernel_ver}/{title}.log"
+
+def tests_exist(machine, kernel_ver):
+    if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/iperf3-unidir-udp-1g-1T.log"):
+        return True
+    return False
 
 # Test test for standalone testing of this test
 if __name__ == "__main__":
