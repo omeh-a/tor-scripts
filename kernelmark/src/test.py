@@ -139,11 +139,11 @@ def iperf3_test_single_local(machine, kernel_ver, pkt_size, bw, udp):
 def logfile(machine, kernel_ver, title):
     if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/{title}.test"):
         os.remove(f"{out_dir}/{machine.name}/{kernel_ver}/{title}.test")
-    os.system(f"echo \"{title}\" > {out_dir}/{machine.name}/{kernel_ver}/{title}.log")
+    # os.system(f"echo \"{title}\" > {out_dir}/{machine.name}/{kernel_ver}/{title}.test")
     return f"{out_dir}/{machine.name}/{kernel_ver}/{title}.test"
 
 def tests_exist(machine, kernel_ver):
-    if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/iperf3-unidir-udp-1g-1T.log"):
+    if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/iperf3-unidir-udp-1g-1T.test"):
         return True
     return False
 

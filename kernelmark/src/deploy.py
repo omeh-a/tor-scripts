@@ -13,7 +13,7 @@ def deploy(machine, kernel_ver):
     # Invoke mq.sh. Set with 300 second timeout to handle contigency of kernel panic
     os.system(f"mq.sh sem -signal {machine.name}")
     result = os.system(f"mq.sh run -c \"Ostritch\" -s {machine.name} -L \
-        -d 600 -f {out_dir}/{machine.name}/{kernel_ver}/bzImage \
+        -d 1200 -f {out_dir}/{machine.name}/{kernel_ver}/bzImage \
             -f {out_dir}/{machine.name}/{kernel_ver}/rootfs.cpio")
     
     if result:
