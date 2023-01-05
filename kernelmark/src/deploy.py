@@ -10,10 +10,10 @@ from error import *
 from machine import Machine
 
 def deploy(machine, kernel_ver):
-    # Invoke mq.sh
+    # Invoke mq.sh. Set with 300 second timeout to handle contigency of kernel panic
     os.system(f"mq.sh sem -signal {machine.name}")
     result = os.system(f"mq.sh run -c \"Ostritch\" -s {machine.name} -L \
-        -f {out_dir}/{machine.name}/{kernel_ver}/bzImage \
+        -d 600 -f {out_dir}/{machine.name}/{kernel_ver}/bzImage \
             -f {out_dir}/{machine.name}/{kernel_ver}/rootfs.cpio")
     
     if result:

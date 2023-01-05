@@ -12,23 +12,18 @@ python3 /usr/tester_wait_py/testerwait.py
 
 echo "Beginning iperf3 tests"
 
+watch_status=0
+iperf3 -s > out & 
+pid="$!"
 
-echo "Bidirectional TCP 1G"
-iperf3 -s -1
+# thank you
+# https://unix.stackexchange.com/questions/706406/kill-program-if-no-output-to-stdout-for-x-seconds
+while [ "$watch_status" != "2" ]; do
+    /usr/bin/inotifywait -qq -t 10 -e modify out 2>/dev/null & 
+    wait $!
+    watch_status="$?"
+done
 
-echo "Bidirectional UCP 1G"
-iperf3 -s -1
-
-echo "Bidirectional TCP 100M"
-iperf3 -s -1
-
-echo "Bidirectional UDP 100M"
-iperf3 -s -1
-
-echo "Unidirectional TCP 1G"
-iperf3 -s -1
-
-echo "Unidirectional UDP 1G"
-iperf3 -s -1
+kill -9 "$pid"
 
 echo "Ostritch"

@@ -13,7 +13,7 @@ from machine import *
 import build
 from error import *
 import test
-from signal import signal, SIGINT
+from signal import signal, SIGINT, SIGKILL
 
 NUM_ARGS = 2    # mandatory arguments
 MAX_FAILS = 3   # maximum number of consecutive build failures
@@ -79,7 +79,8 @@ def main():
         for kernel in kernels[major]:
             alert(f"\033[01m ### STARTING TEST: kernel {kernel} ###\033[00m")
             if (num_fails >= MAX_FAILS):
-                alert("Too many consecutive build failures! Last unsuccessful build was v" + kernel + ".")
+                alert(f"Too many consecutive build failures! Last unsuccessful build was v {kernel}. \
+                    {successful_builds} successful out of {successful_builds + failed_builds} builds.")
                 exit()
             
             status = build.build(m, kernel, first_major)
@@ -115,10 +116,10 @@ def main():
             status = deploy.deploy(m, kernel)
             if status:
                 print_err(status)
-                os.kill(tester_pid)
+                os.kill(tester_pid, SIGKILL)
                 exit()
             
-
+    os.system(f"mq.sh sem -signal {machine.name}")
     print(f"Kernel testing complete! {successful_builds} successful out of {successful_builds + failed_builds} builds.")
 
 
@@ -129,6 +130,7 @@ def interrupt_handler(signal_received, frame):
     Handle ctrl+C
     """
     alert("SIGINT received. Exiting")
+    os.system(f"mq.sh sem -signal {machine.name}")
     exit()
 
 if __name__ == "__main__":

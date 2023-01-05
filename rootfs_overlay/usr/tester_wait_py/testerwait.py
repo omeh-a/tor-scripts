@@ -7,14 +7,12 @@
 # 01/23
 
 
-
+import os
+import socket
+import time
 
 
 def main():
-    import os
-    import socket
-    import time
-
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((str(socket.INADDR_ANY), 1345))
 
@@ -24,11 +22,6 @@ def main():
     sock.sendto(str.encode("Emu"), client)
     sock.close()
     exit(0)
-
-
-
-
-
 
 
 if __name__ == "__main__":
