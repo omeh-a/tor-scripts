@@ -10,20 +10,39 @@ export PYTHONPATH=/usr/lib/python3.10/site-packagesgit
 echo "Awaiting tester connection"
 python3 /usr/tester_wait_py/testerwait.py
 
-echo "Beginning iperf3 tests"
+echo "Beginning iperf3 tests!"
 
-watch_status=0
-iperf3 -s > out.txt & 
-pid="$!"
-
-# thank you
-# https://unix.stackexchange.com/questions/706406/kill-program-if-no-output-to-stdout-for-x-seconds
-while [ "$watch_status" != "2" ]; do
-    /usr/bin/inotifywait -qq -t 10 -e modify out.txt 2>/dev/null & 
-    wait $!
-    watch_status="$?"
-done
-
-kill -9 "$pid"
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
+iperf3 -s -1
 
 echo "Ostritch"

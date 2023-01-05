@@ -16,7 +16,7 @@ MAX_RETRIES = 25
 TARGET_BW = 1000 # in megabits / sec
 
 pkt_sizes = [
-    1448, 1024, 512, 256, 128
+    1448, 1024, 512, 256, 128, 90, 76, 64
 ]
 
 def test(machine, kernel_ver):

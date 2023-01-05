@@ -9,6 +9,7 @@ import json
 import os
 
 import deploy
+from finalise import finalise_iperf3
 from machine import *
 import build
 from error import *
@@ -118,8 +119,9 @@ def main():
                 print_err(status)
                 os.kill(tester_pid, SIGKILL)
                 exit()
-            
-    os.system(f"mq.sh sem -signal {machine.name}")
+
+    os.system(f"mq.sh sem -signal {machine}")
+    finalise_iperf3("../output", machine)
     print(f"Kernel testing complete! {successful_builds} successful out of {successful_builds + failed_builds} builds.")
 
 
