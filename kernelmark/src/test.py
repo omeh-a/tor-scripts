@@ -16,7 +16,7 @@ MAX_RETRIES = 25
 TARGET_BW = 1000 # in megabits / sec
 
 pkt_sizes = [
-    1448, 1024, 512, 256, 128, 64
+    1448, 1024, 512, 256, 128
 ]
 
 def test(machine, kernel_ver):
@@ -131,16 +131,16 @@ def iperf3_test_single_local(machine, kernel_ver, pkt_size, bw, udp):
         f = logfile(machine, kernel_ver, f"iperf3-tcp-{bw}m-{pkt_size}")
         os.system(f"iperf3 {iperf_common} -b {bw}M --logfile {f} --set-mss {pkt_size}")
     
-    print(f"Test {f} complete.")
+    print(f"Test {f} complete.\n")
 
     time.sleep(3)
 
 
 def logfile(machine, kernel_ver, title):
-    if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/{title}.log"):
-        os.remove(f"{out_dir}/{machine.name}/{kernel_ver}/{title}.log")
+    if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/{title}.test"):
+        os.remove(f"{out_dir}/{machine.name}/{kernel_ver}/{title}.test")
     os.system(f"echo \"{title}\" > {out_dir}/{machine.name}/{kernel_ver}/{title}.log")
-    return f"{out_dir}/{machine.name}/{kernel_ver}/{title}.log"
+    return f"{out_dir}/{machine.name}/{kernel_ver}/{title}.test"
 
 def tests_exist(machine, kernel_ver):
     if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/iperf3-unidir-udp-1g-1T.log"):
