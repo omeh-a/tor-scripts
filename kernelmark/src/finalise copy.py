@@ -9,20 +9,13 @@ import os
 
 def finalise_iperf3(out_dir, machine_name):
     results = {}
-    
+
     # Find all tests
     for kernel in os.listdir(f"{out_dir}/{machine_name}"):
         # sub = []
         # Open each test
         results[kernel] = {"UDP" : {}, "TCP" : {}}
-        files = []
-        for f in os.listdir(f"{out_dir}/{machine_name}/{kernel}"):
-            if "iperf3" in str(f):
-                files.append(f)
-
-        files.sort(key=lambda filename: iperf3_filesort(filename))
-            
-        for file in files:
+        for file in os.listdir(f"{out_dir}/{machine_name}/{kernel}"):
             # Skip kernel, rootfs, etc.
             if not ".test" in file or not "iperf3" in file:
                 continue
@@ -36,8 +29,8 @@ def finalise_iperf3(out_dir, machine_name):
 
                 # packet size
                 packet_size = file.split("-")[3].split(".")[0] # cursed line but it works
+
                 result["packet_sz"] = packet_size
-                
                 # target bandwidth
                 bw = file.split("-")[2]
 
@@ -56,7 +49,7 @@ def finalise_iperf3(out_dir, machine_name):
     iperf3_graphs_throughput(results)
     iperf3_graphs_latency(results)
     iperf3_graphs_cpu(results)
-    
+
 
 def iperf3_graphs_throughput(results):
     """
@@ -70,13 +63,17 @@ def iperf3_graphs_throughput(results):
                 throughput = []
 
                 for test in results[kernel][protocol][bw]:
+                    print(test["packet_sz"])
                     packet_sizes.append(test["packet_sz"])
                     throughput.append(float(test["end"]["sum_sent"]["bits_per_second"]) / 10**6) # in megabits
+                print(packet_sizes)
+                packet_sizes.reverse()
+                throughput.reverse()
                 plt.xlabel("Packet sizes (bytes)")
                 tt = unitise_plot(throughput, "Throughput")
-                #pkt_ticks(packet_sizes)
                 plt.yticks(ticks(tt, 10))
-                plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+                # pkt_ticks(packet_sizes)
+                plt.ticklabel_format(style='sci', axis='y', useOffset=False)
                 plt.title(f"Throughput performance for kernel {kernel} - {protocol} targeting {bw}b/s")
                 ax = plt.gca()
                 ax.yaxis.set_major_formatter('{x:9<5.1f}')
@@ -99,15 +96,16 @@ def iperf3_graphs_latency(results):
                 for test in results[kernel][protocol][bw]:
                     packet_sizes.append(test["packet_sz"])
                     latency.append(test["end"]["streams"][0]["sender"]["mean_rtt"])
+                packet_sizes.reverse()
+                latency.reverse()
                 plt.xlabel("Packet sizes (bytes)")
                 plt.ylabel("Mean RTT latency (us)")
-                #pkt_ticks(packet_sizes)
                 plt.yticks(ticks(latency, 10))
-                plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+                # pkt_ticks(packet_sizes)
+                plt.ticklabel_format(style='sci', axis='y', useOffset=False)
                 plt.title(f"TCP Latency for kernel {kernel} - targeting {bw}b/s")
                 ax = plt.gca()
                 ax.yaxis.set_major_formatter('{x:9<5.1f}')
-
                 plt.plot(packet_sizes, latency, "bo", packet_sizes, latency, "k")
                 plt.savefig(f"../results/{kernel}-{bw}-latency.png")
 
@@ -125,11 +123,13 @@ def iperf3_graphs_cpu(results):
                 for test in results[kernel][protocol][bw]:
                     packet_sizes.append(test["packet_sz"])
                     cpu.append(test["end"]["cpu_utilization_percent"]["remote_total"])
+                packet_sizes.reverse()
+                cpu.reverse()
                 plt.xlabel("Packet sizes (bytes)")
                 plt.ylabel("CPU usage (%)")
-                #pkt_ticks(packet_sizes)
                 plt.yticks(ticks(cpu, 10))
-                plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+                # pkt_ticks(packet_sizes)
+                plt.ticklabel_format(style='sci', axis='y', useOffset=False)
                 plt.title(f"CPU utilisation for kernel {kernel} - {protocol} targeting {bw}b/s")
                 ax = plt.gca()
                 ax.yaxis.set_major_formatter('{x:9<5.1f}')
@@ -142,7 +142,6 @@ def ticks(data, num_ticks):
     """
     minimum = int(min(data))
     maximum = int(max(data)) + 1
-
     # If it's not possible to create integer ticks, do it the goofy way
     if (maximum - minimum) < num_ticks:
         return [min(data), max(data)]
@@ -171,12 +170,8 @@ def pkt_ticks(pkt_sizes):
     ticks = []
     for p in pkt_sizes:
         ticks.append(int(p))
-    plt.xticks(ticks, pkt_sizes)
-    
+    plt.xticks(ticks)
 
-def iperf3_filesort(file):
-    return int(file.split("-")[3].split(".")[0])
-
-# For testingg
+# For testing
 if __name__ == "__main__":
     finalise_iperf3("/home/mattr/tor-scripts/kernelmark/output", "haswell4")
