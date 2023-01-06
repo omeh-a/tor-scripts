@@ -179,4 +179,4 @@ def iperf3_filesort(file):
 
 # For testingg
 if __name__ == "__main__":
-    finalise_iperf3("/home/mattr/tor-scripts/kernelmark/output", "haswell4")
+    finalise_iperf3("/home/mattr/tor-scripts/kernelmark/output", "haswell3")

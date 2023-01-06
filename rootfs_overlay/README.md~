@@ -1,2 +1,6 @@
 # rootfs_overlay
 Directory containing everything to be pasted into the built version of Linux.
+
+## Important Components
+* `/usr/tester_wait_py` - this is a simple UDP server which listens for a ping from `kernelmark`. Critical for testing to work.
+* `/etc/init.d/S90-bench` - script invoking testing on the target.

@@ -122,7 +122,7 @@ def iperf3_test_single_local(machine, kernel_ver, pkt_size, bw, udp):
     NOTE: this function generates load LOCALLY - not using a remote system.
     """
 
-    iperf_common = f"-c {machine.ip} i 10 -t 15 -J --connect-timeout 5000"
+    iperf_common = f"-c {machine.ip} i 10 -t 30 -J --connect-timeout 5000"
     f = ""
     if udp:
         f = logfile(machine, kernel_ver, f"iperf3-udp-{bw}m-{pkt_size}")
@@ -143,7 +143,7 @@ def logfile(machine, kernel_ver, title):
     return f"{out_dir}/{machine.name}/{kernel_ver}/{title}.test"
 
 def tests_exist(machine, kernel_ver):
-    if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/iperf3-unidir-udp-1g-1T.test"):
+    if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/iperf3-udp-100m-64.test"):
         return True
     return False
 
