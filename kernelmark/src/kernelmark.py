@@ -121,7 +121,8 @@ def main():
                 exit()
 
     os.system(f"mq.sh sem -signal {machine}")
-    finalise_iperf3("../output", machine)
+    if not buildonly:
+        finalise_iperf3("../output", machine)
     print(f"Kernel testing complete! {successful_builds} successful out of {successful_builds + failed_builds} builds.")
 
 

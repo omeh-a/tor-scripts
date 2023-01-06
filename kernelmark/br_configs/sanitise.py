@@ -6,6 +6,17 @@
 import os
 import sys
 
+DUMB_FLAGS = ["BR2_PACKAGE_PLY=n",
+              "BR2_PACKAGE_OFONO=n",
+              "BR2_PACKAGE_KMSXX=n",
+              "BR2_PACKAGE_LIBQRTR_GLIB=n",
+              "BR2_PACKAGE_ELL=n",
+              "BR2_PACKAGE_LIBURING=n",
+              "BR2_PACKAGE_CFM=n",
+              "BR2_PACKAGE_IWD=n",
+              "BR2_PACKAGE_MRP=n",
+              "BR2_PACKAGE_OLSR=n"]
+
 def main():
     kernel_version = False
     kernel_custom_version = False
@@ -33,7 +44,8 @@ def main():
                 continue
             else:
                 writer.write(line)
-
+        for flag in DUMB_FLAGS:
+            writer.write(f"{flag}\n")
     print(f"Sanitised file and saved to {sys.argv[2]}.config.")
 
 

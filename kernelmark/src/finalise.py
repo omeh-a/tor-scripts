@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import json
 import os
 
+IDEAL_LATENCY = 0.005
+
 def finalise_iperf3(out_dir, machine_name):
     results = {}
     
@@ -137,8 +139,7 @@ def iperf3_graphs_cpu(results):
                 plt.savefig(f"../results/{kernel}-{bw}-{protocol}-CPU.png")
 
 def ticks(data, num_ticks):
-    """
-    Create graph ticks for a dataset
+    """((float(p) * 8) / IDEAL_LATENCY) / 1000or a dataset
     """
     minimum = int(min(data))
     maximum = int(max(data)) + 1
@@ -167,6 +168,12 @@ def unitise_plot(data, axis_title):
             data[i] *= 1000000
     return data
 
+def calculate_expected_throughput(pkt_sizes, bw):
+    speeds = []
+    for p in pkt_sizes:
+        speeds.append(float(p) / (IDEAL_LATENCY))
+    return speeds
+
 def pkt_ticks(pkt_sizes):
     ticks = []
     for p in pkt_sizes:
@@ -176,6 +183,55 @@ def pkt_ticks(pkt_sizes):
 
 def iperf3_filesort(file):
     return int(file.split("-")[3].split(".")[0])
+
+
+class iperf_results():
+    def __init__(self, results):
+        self.results = results
+        pkt_sizes_udp = []
+        pkt_sizes_tcp = []
+
+        # Check packet sizes in the first test for both UDP and TCP
+        for kernel in results:
+            for bw in results[kernel]["udp"]:
+                for test in results[kernel]["udp"][bw]:
+                    pkt_sizes_udp.append(test["packet_sz"])
+                for test in results[kernel]["tcp"][bw]:
+                    pkt_sizes_tcp.append(test["packet_sz"])
+                break
+            break
+        # hacky but whatever
+        self.sizes_udp = pkt_sizes_udp
+        self.sizes_tcp = pkt_sizes_tcp
+    
+    def get_result(self, bw, udp, kernel):
+        throughput = []
+        latency = []
+        cpu = []
+        
+        if not udp:
+            for test in self.results[kernel]["udp"][bw]:
+                throughput.append(float(test["end"]["sum_sent"]["bits_per_second"]) / 10**6)
+                latency.append(test["end"]["streams"][0]["sender"]["mean_rtt"])
+                cpu.append(test["end"]["cpu_utilization_percent"]["remote_total"])
+
+            return {"throughput" : throughput, "latency" : latency, "cpu" : cpu}
+        else:
+            for test in self.results[kernel]["udp"][bw]:
+                throughput.append(float(test["end"]["sum_sent"]["bits_per_second"]) / 10**6)
+                cpu.append(test["end"]["cpu_utilization_percent"]["remote_total"])
+
+            return {"throughput" : throughput, "cpu" : cpu}
+    
+    def get_result_udp(self, bw, kernel):
+        return self.get_result(bw, True, kernel)
+
+    def get_result_tcp(self, bw, kernel):
+        return self.get_result(self, bw, False, kernel)
+
+    def mean_throughput_by_major(self, bw, udp):
+        # Get best performing throughput for each major version
+        
 
 # For testingg
 if __name__ == "__main__":
