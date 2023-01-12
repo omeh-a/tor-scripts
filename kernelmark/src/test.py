@@ -74,17 +74,18 @@ def test(machine, kernel_ver, local):
 
         # Invoke iperf3
         for sz in pkt_sizes:
+            # TCP 100% bw
+            iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, False, local)
+
+            # UDP 100% bw
+            # iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, True, local)
+            
             # TCP multicore
             iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, False, machine.logical_cpus)
 
             # # UDP multicore
-            # iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, False, machine.logical_cpus)
+            iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, True, machine.logical_cpus)
 
-            # # TCP 100% bw
-            # iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, False, local)
-
-            # # UDP 100% bw
-            # iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, True, local)
 
             # # TCP 10% bw
             # iperf3_test_single(machine, kernel_ver, sz, int(TARGET_BW/10), False, local)
@@ -106,7 +107,7 @@ def iperf3_test_single(machine, kernel_ver, pkt_size, bw, udp, local):
     NOTE: if not using this with the local flag, it will not work outside of the TS network.
     """
 
-    iperf_common = f"-c {machine.ip} -t 30 -J --connect-timeout 5000"
+    iperf_common = f"-c {machine.ip} -t 30 -J --connect-timeout 5000 -p 5000"
     f = ""
     if local:
         if udp:
@@ -119,12 +120,12 @@ def iperf3_test_single(machine, kernel_ver, pkt_size, bw, udp, local):
     else:
         # for each of these: run command on vb01, scp logfile back
         if udp:
-            os.system(f"on -h vb01 -c 'rm -f ~/iperf3/log && touch ~/iperf3/log && iperf3 {iperf_common} -b {bw}M -u --logfile ~/iperf3/log --length {pkt_size}' && \
-                scp vb01:~/iperf3/log {out_dir}/{machine.name}/{kernel_ver}/iperf3-st-udp-{bw}m-{pkt_size}.test")
+            os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f ~/iperf3/log && iperf3 {iperf_common} -b {bw}M -u --logfile ~/iperf3/log --length {pkt_size}' && \
+                scp vb01.keg.cse.unsw.edu.au:~/iperf3/log {out_dir}/{machine.name}/{kernel_ver}/iperf3-st-udp-{bw}m-{pkt_size}.test")
             print(f"Test {pkt_size}-{bw}-udp complete.\n")
         else:
-            os.system(f"on -h vb01 -c 'rm -f ~/iperf3/log && touch ~/iperf3/log && iperf3 {iperf_common} -b {bw}M --logfile ~/iperf3/log --set-mss {pkt_size}' && \
-                scp vb01:~/iperf3/log {out_dir}/{machine.name}/{kernel_ver}/iperf3-st-tcp-{bw}m-{pkt_size}.test")
+            os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f ~/iperf3/log && iperf3 {iperf_common} -b {bw}M --logfile ~/iperf3/log --set-mss {pkt_size}' && \
+                scp vb01.keg.cse.unsw.edu.au:~/iperf3/log {out_dir}/{machine.name}/{kernel_ver}/iperf3-st-tcp-{bw}m-{pkt_size}.test")
             print(f"Test {pkt_size}-{bw}-tcp complete.\n")
     time.sleep(3)
 
@@ -135,26 +136,26 @@ def iperf3_test_multi(machine, kernel_ver, pkt_size, bw, udp, num_cpus):
     if num_cpus > MAX_CPUS:
         print(f"Tried to test with too many cores! Max={MAX_CPUS} Requested={num_cpus}.")
     
-    iperf_common = f"-c {machine.ip} -t 30 -J --connect-timeout 5000 -b {int(bw/num_cpus)}M --length {pkt_size} --logfile ~/iperf3/log"
+    iperf_common = f"-c {machine.ip} -t 30 -J --connect-timeout 5000 -b {int(bw/num_cpus)}M --length {pkt_size}"
     if udp:
         iperf_common += " -u"
     
     # spin up testers 2..8
     for i in range(1, num_cpus):
-        os.system(f"on -h vb0{str(i+1)} -c 'iperf3 {iperf_common} -p {str(5000 + i)}'  &")
-        print(f"on -h vb0{str(i+1)} -c 'iperf3 {iperf_common} -p {str(5000 + i)}' &")
+        os.system(f"on -h vb0{str(i+1)}.keg.cse.unsw.edu.au -c 'rm -f ~/iperf3/vb0{str(i+1)}/log && iperf3 {iperf_common} -p {str(5000 + i)} --logfile ~/iperf3/vb0{str(i+1)}/log' &")
     
     # tester 1
-    os.system(f"on -h vb01 -c 'iperf3 {iperf_common} -p 5000'")
+    os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f ~/iperf3/vb01/log && iperf3 {iperf_common} -p 5000 --logfile ~/iperf3/vb01/log'")
 
     # once tester 1 unblocks, we can collect results and move on. wait, just in case.
     time.sleep(3)
 
     for i in range(0, num_cpus):
+        print(f"Getting info from vb0{str(i+1)}")
         if udp:
-            os.system(f"scp vb0{str(i+1)}:~/iperf3/log {out_dir}/{machine.name}/{kernel_ver}/iperf3-mt{i}-udp-{bw}m-{pkt_size}.test")
+            os.system(f"scp vb0{str(i+1)}.keg.cse.unsw.edu.au:~/iperf3/vb0{str(i+1)}/log {out_dir}/{machine.name}/{kernel_ver}/iperf3-mt{i}-udp-{bw}m-{pkt_size}.test")
         else:
-            os.system(f"scp vb0{str(i+1)}:~/iperf3/log {out_dir}/{machine.name}/{kernel_ver}/iperf3-mt{i}-tcp-{bw}m-{pkt_size}.test")
+            os.system(f"scp vb0{str(i+1)}.keg.cse.unsw.edu.au:~/iperf3/vb0{str(i+1)}/log {out_dir}/{machine.name}/{kernel_ver}/iperf3-mt{i}-tcp-{bw}m-{pkt_size}.test")
     return
 
 def logfile(machine, kernel_ver, title):
@@ -164,7 +165,7 @@ def logfile(machine, kernel_ver, title):
     return f"{out_dir}/{machine.name}/{kernel_ver}/{title}.test"
 
 def tests_exist(machine, kernel_ver):
-    if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/iperf3-*-udp-100m-64.test"):
+    if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/iperf3-st-tcp-1000m-512.test"):
         return True
     return False
 

@@ -32,10 +32,4 @@ while [ "$my_watch_status" != "2" ]; do
     my_watch_status="$?"
 done
 
-kill -9 "$my_prog_pid"
-
-
-
-
-# this should be unreachable, but this gets us out if iperf crashes
 echo "Ostritch"

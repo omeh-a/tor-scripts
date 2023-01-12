@@ -15,7 +15,8 @@ DUMB_FLAGS = ["BR2_PACKAGE_PLY=n",
               "BR2_PACKAGE_CFM=n",
               "BR2_PACKAGE_IWD=n",
               "BR2_PACKAGE_MRP=n",
-              "BR2_PACKAGE_OLSR=n"]
+              "BR2_PACKAGE_OLSR=n",
+              "BR2_PACKAGE_WIREGUARD_LINUX_COMPAT=n"]
 
 def main():
     kernel_version = False
