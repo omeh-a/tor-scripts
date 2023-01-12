@@ -8,6 +8,7 @@ import json
 import os
 import socket
 import time
+import signal
 from build import out_dir
 from error import *
 from machine import Machine
@@ -20,13 +21,13 @@ pkt_sizes = [
 ]
 
 def test(machine, kernel_ver):
-    # Fork process, returning main thread
     if __name__ != "__main__":
         pid = os.fork()
     else:
         pid = 0
 
     if pid == 0:
+        
         # Child process
         # Start by waiting until the system is booted by trying to send
         # a UDP packet to port 1345 until it succeeds.
@@ -82,39 +83,11 @@ def test(machine, kernel_ver):
             iperf3_test_single_local(machine, kernel_ver, sz, int(TARGET_BW/10), True)
         
 
-        # # Bidirectional TCP traffic 1 Gbps 10 threads
-        # f = logfile(machine, kernel_ver, "iperf3-bidir-tcp-1g-10P")
-        # os.system(f"iperf3 {iperf_common} -b 1000M -P 10--bidir --logfile {f}")
-        
-        # # Birectional UDP traffic 1 Gbps 10 threads
-        # f = logfile(machine, kernel_ver, "iperf3-bidir-udp-1g-10P")
-        # os.system(f"iperf3 {iperf_common} -b 1000M --bidir -u --logfile {f}")
-        # time.sleep(3)
-
-        # # Bidirectional TCP traffic 100 Mbps 100 threads
-        # f = logfile(machine, kernel_ver, "iperf3-bidir-tcp-100m-100P")
-        # os.system(f"iperf3 {iperf_common} -b 100M  -P 100 --bidir --logfile {f}")
-        # time.sleep(3)
-
-        # # Bidirectional UDP traffic 100 Mbps 100 threads
-        # f = logfile(machine, kernel_ver, "iperf3-bidir-udp-100m-100P")
-        # os.system(f"iperf3 {iperf_common} -b 100M -P 100 --bidir -u --logfile {f}")
-        # time.sleep(3)
-        
-        # # Unidirectional TCP traffic 1 Gbps 1 thread
-        # f = logfile(machine, kernel_ver, "iperf3-unidir-tcp-1g-1T")
-        # os.system(f"iperf3 {iperf_common} -b 1000M --logfile {f}")
-
-        # # Unidirectional UDP traffic 1 Gbps 1 thread
-        # f = logfile(machine, kernel_ver, "iperf3-unidir-udp-1g-1T")
-        # os.system(f"iperf3 {iperf_common} -b 1000M -u --logfile {f}")
-
-        print("Done testing. Exiting child process.")
-
+        time.sleep(5)
+        print(f"Done testing.")
         exit(0)
-    else:
-        # Parent process
-        return pid
+    return pid
+
 
 def iperf3_test_single_local(machine, kernel_ver, pkt_size, bw, udp):
     """

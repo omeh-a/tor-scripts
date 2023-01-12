@@ -229,8 +229,8 @@ class iperf_results():
     def get_result_tcp(self, bw, kernel):
         return self.get_result(self, bw, False, kernel)
 
-    def mean_throughput_by_major(self, bw, udp):
-        # Get best performing throughput for each major version
+    # def mean_throughput_by_major(self, bw, udp):
+    #     # Get best performing throughput for each major version
         
 
 # For testingg

@@ -50,8 +50,8 @@ def build(machine, kernel_ver, clean):
         os.chdir(script_dir)
         return ERR_B_BUILDROOT_DIED
 
-    os.system(f"cp output/images/bzImage {out_dir}/{machine.name}/{kernel_ver}/")
-    os.system(f"cp output/images/rootfs.cpio {out_dir}/{machine.name}/{kernel_ver}/")
+    os.system(f"cp output/images/*Image {out_dir}/{machine.name}/{kernel_ver}/Image")
+    os.system(f"cp output/images/rootfs.cpio {out_dir}/{machine.name}/{kernel_ver}/rootfs.cpio")
 
     os.chdir(script_dir)
     return 0
@@ -77,7 +77,7 @@ def kernel_built(machine, kernel_ver):
     Returns true if a build of the specified kernel is in the output directory.
     """
     if os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}") \
-            and os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/bzImage"):
+            and os.path.exists(f"{out_dir}/{machine.name}/{kernel_ver}/rootfs.cpio"):
         return True
     return False
 
