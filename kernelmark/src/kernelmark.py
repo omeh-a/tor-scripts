@@ -62,6 +62,7 @@ def main():
 
     skipdone = False
     buildonly = False
+    local = False
     # Collect remaining flags
     for i in range(NUM_ARGS + 1, len(sys.argv)):
         if sys.argv[i] == "hardclean":
@@ -72,6 +73,8 @@ def main():
             skipdone = True
         elif sys.argv[i] == "buildonly":
             buildonly = True
+        elif sys.argv[i] == "local":
+            local = True
         else:
             print(f"Unknown flag: {sys.argv[i]} - continuing.")
 
@@ -121,7 +124,8 @@ def main():
 
             # Summon test process first, since we want to keep the status of the deployment
             # in the parent thread (because failing to deploy is a fatal error and should stop us)
-            tester_pid = test.test(m, kernel)
+            tester_pid = test.test(m, kernel, local)
+            
             status = deploy.deploy(m, kernel)
             if status:
                 print_err(status)

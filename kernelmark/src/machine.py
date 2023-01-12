@@ -13,3 +13,4 @@ class Machine():
         self.dev_tree = manifest["device_tree"]
         self.mac = manifest["mac"]
         self.forward = manifest["forward"]
+        self.logical_cpus = manifest["logical_cpus"]
