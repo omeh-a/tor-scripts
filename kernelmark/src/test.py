@@ -13,13 +13,12 @@ from build import out_dir
 from error import *
 from machine import Machine
 
-MAX_RETRIES = 25
+MAX_RETRIES = 40
 TARGET_BW = 1000 # in megabits / sec
 IPERF_PORT1 = 5000
 
 pkt_sizes = [
-    # 1448, 1024, 
-    512, 256, 128, 90, 76, 64
+    1448, 1024, 512, 256, 128, 90
 ]
 # pkt_sizes = [1024]
 MAX_CPUS = 8
@@ -78,7 +77,7 @@ def test(machine, kernel_ver, local):
             iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, False, local)
 
             # UDP 100% bw
-            # iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, True, local)
+            iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, True, local)
             
             # TCP multicore
             iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, False, machine.logical_cpus)
@@ -120,12 +119,12 @@ def iperf3_test_single(machine, kernel_ver, pkt_size, bw, udp, local):
     else:
         # for each of these: run command on vb01, scp logfile back
         if udp:
-            os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f ~/iperf3/log && iperf3 {iperf_common} -b {bw}M -u --logfile ~/iperf3/log --length {pkt_size}' && \
-                scp vb01.keg.cse.unsw.edu.au:~/iperf3/log {out_dir}/{machine.name}/{kernel_ver}/iperf3-st-udp-{bw}m-{pkt_size}.test")
+            os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f /tmp/iperf3-log && iperf3 {iperf_common} -b {bw}M -u --logfile /tmp/iperf3-log --length {pkt_size}' && \
+                scp vb01.keg.cse.unsw.edu.au:/tmp/iperf3-log {out_dir}/{machine.name}/{kernel_ver}/iperf3-st-udp-{bw}m-{pkt_size}.test")
             print(f"Test {pkt_size}-{bw}-udp complete.\n")
         else:
-            os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f ~/iperf3/log && iperf3 {iperf_common} -b {bw}M --logfile ~/iperf3/log --set-mss {pkt_size}' && \
-                scp vb01.keg.cse.unsw.edu.au:~/iperf3/log {out_dir}/{machine.name}/{kernel_ver}/iperf3-st-tcp-{bw}m-{pkt_size}.test")
+            os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f /tmp/iperf3-log && iperf3 {iperf_common} -b {bw}M --logfile /tmp/iperf3-log --set-mss {pkt_size}' && \
+                scp vb01.keg.cse.unsw.edu.au:/tmp/iperf3-log {out_dir}/{machine.name}/{kernel_ver}/iperf3-st-tcp-{bw}m-{pkt_size}.test")
             print(f"Test {pkt_size}-{bw}-tcp complete.\n")
     time.sleep(3)
 
@@ -142,7 +141,7 @@ def iperf3_test_multi(machine, kernel_ver, pkt_size, bw, udp, num_cpus):
     
     # spin up testers 2..8
     for i in range(1, num_cpus):
-        os.system(f"on -h vb0{str(i+1)}.keg.cse.unsw.edu.au -c 'rm -f ~/iperf3/vb0{str(i+1)}/log && iperf3 {iperf_common} -p {str(5000 + i)} --logfile ~/iperf3/vb0{str(i+1)}/log' &")
+        os.system(f"on -h vb0{str(i+1)}.keg.cse.unsw.edu.au -c 'rm -f /tmp/mtlog && iperf3 {iperf_common} -p {str(5000 + i)} --logfile /tmp/mtlog' &")
     
     # tester 1
     os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f ~/iperf3/vb01/log && iperf3 {iperf_common} -p 5000 --logfile ~/iperf3/vb01/log'")
@@ -153,9 +152,9 @@ def iperf3_test_multi(machine, kernel_ver, pkt_size, bw, udp, num_cpus):
     for i in range(0, num_cpus):
         print(f"Getting info from vb0{str(i+1)}")
         if udp:
-            os.system(f"scp vb0{str(i+1)}.keg.cse.unsw.edu.au:~/iperf3/vb0{str(i+1)}/log {out_dir}/{machine.name}/{kernel_ver}/iperf3-mt{i}-udp-{bw}m-{pkt_size}.test")
+            os.system(f"scp vb0{str(i+1)}.keg.cse.unsw.edu.au:/tmp/mtlog {out_dir}/{machine.name}/{kernel_ver}/iperf3-mt{i}-udp-{bw}m-{pkt_size}.test")
         else:
-            os.system(f"scp vb0{str(i+1)}.keg.cse.unsw.edu.au:~/iperf3/vb0{str(i+1)}/log {out_dir}/{machine.name}/{kernel_ver}/iperf3-mt{i}-tcp-{bw}m-{pkt_size}.test")
+            os.system(f"scp vb0{str(i+1)}.keg.cse.unsw.edu.au:/tmp/mtlog {out_dir}/{machine.name}/{kernel_ver}/iperf3-mt{i}-tcp-{bw}m-{pkt_size}.test")
     return
 
 def logfile(machine, kernel_ver, title):

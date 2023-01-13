@@ -27,6 +27,7 @@ def finalise_iperf3(out_dir, machine_name):
         for file in files:
             # Skip kernel, rootfs, etc.
             if not ".test" in file or not "iperf3" in file:
+                print(f"skipped {file}")
                 continue
             with open(f"{out_dir}/{machine_name}/{kernel}/{file}") as f:
                 try:
@@ -50,7 +51,7 @@ def finalise_iperf3(out_dir, machine_name):
                 protocol = result["start"]["test_start"]["protocol"]
                 
                 # for single threaded, don't do anything special
-                if "st" in file.split("-")[1]:
+                if file.split("-")[1] == "st":
                     try:
                         results[kernel]["st"][protocol][bw].append(result)
                     except KeyError:
@@ -58,102 +59,221 @@ def finalise_iperf3(out_dir, machine_name):
                 # otherwise, for multithreaded we need to break this up further
                 # yes i know this json stuff is a nightmare, but this saves having to reformat every single entry
                 else:
+                    # check this mt has an entry
                     try:
-                        results[kernel]["mt"][file.split("-")[1]][protocol][bw].append(result)
+                        t = results[kernel]["mt"][protocol][file.split("-")[1]]
                     except KeyError:
-                        try:
-                            results[kernel]["mt"][protocol][file.split("-")[1]][bw] = []
-                        except KeyError:
-                            results[kernel]["mt"][protocol][file.split("-")[1]] = {}
-                            results[kernel]["mt"][protocol][file.split("-")[1]][bw] = []
-
-    r = iperf_results(results)
+                        
+                        results[kernel]["mt"][protocol][file.split("-")[1]] = {}
+                    try:
+                        results[kernel]["mt"][protocol][file.split("-")[1]][bw].append(result)
+                    except KeyError:
+                        # try:
+                        results[kernel]["mt"][protocol][file.split("-")[1]][bw] = []
+                        # except KeyError:
+                        results[kernel]["mt"][protocol][file.split("-")[1]][bw].append(result)
+                            
+    r = iperf_results(results, machine_name)
     iperf3_st_graphs_throughput(r)
-    # iperf3_st_graphs_latency(results)
-    # iperf3_st_graphs_cpu(results)
+    iperf3_st_graphs_latency(r)
+    iperf3_st_graphs_cpu(r)
+    iperf3_mt_graphs_throughput(r)
+    iperf3_mt_graphs_cpu(r)
+    iperf3_mt_graphs_latency(r)
     
 
 def iperf3_st_graphs_throughput(results):
     """
-    Generates plots of throughput against packet size for UDP results
+    Generates plots of throughput against packet size for UDP/TCP results
     """
     for protocol in ["UDP", "TCP"]:
         for bw in results.bws:
             plt.clf()
             for kernel in results.kernels:
-                print(f"Graphing {protocol}-{bw}-{kernel}")
+                # print(f"Graphing {protocol}-{bw}-{kernel}")
                 sub = {}
-                packet_sizes = []
                 if protocol == "UDP":
-                    packet_sizes = results.sizes_udp
                     sub = results.get_result_st_udp(bw, kernel)
                 else:
                     sub = results.get_result_st_tcp(bw, kernel)
-                    packet_sizes = results.sizes_tcp
-                
+                if len(sub["throughput"]) == 0:
+                    continue
                 plt.xlabel("Packet sizes (bytes)")
                 tt = unitise_plot(sub["throughput"], "Throughput")
                 #pkt_ticks(packet_sizes)
                 plt.yticks(ticks(tt, 10))
-                plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-                plt.title(f"Throughput performance for kernel {kernel} - {protocol} targeting {bw}b/s")
-                ax = plt.gca()
-                ax.yaxis.set_major_formatter('{x:9<5.1f}')
-                plt.plot(packet_sizes, tt, "bo", packet_sizes, tt, "k")
-                plt.savefig(f"../results/{kernel}-{bw}-{protocol}-throughput.png")
-                
+                # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+                plt.title(f"Throughput performance - {protocol} targeting {bw[:len(bw)-1]}Mb/s")
+                plt.plot(sub["packets"], tt, label=f"{kernel}")
+            ax = plt.gca()
+            ax.yaxis.set_major_formatter('{x:9<5.1f}')
+            ax.legend()
+            plt.savefig(f"../results/{results.machinename}-st-{bw}-{protocol}-throughput.png")
+
 def iperf3_st_graphs_latency(results):
     """
-    Generates graphs of mean packet latency against packet size
+    Generates plots of latency against packet size for TCP results
     """
-    for kernel in results:
-        for protocol in results[kernel]:
-            if protocol == "UDP":
-                continue
-            for bw in results[kernel][protocol]:
-                plt.clf()
-                packet_sizes = []
-                latency = []
+    for protocol in ["TCP"]:
+        for bw in results.bws:
+            plt.clf()
+            y_largest_range = []
+            for kernel in results.kernels:
+                # print(f"Graphing {protocol}-{bw}-{kernel}")
+                sub = {}
+                if protocol == "UDP":
+                    packet_sizes = results.sizes_udp
+                else:
+                    sub = results.get_result_st_tcp(bw, kernel)
+                if len(sub["latency"]) == 0:
+                    continue
+                
+                if y_largest_range == [] or max(y_largest_range) < max(sub["latency"]):
+                    y_largest_range = sub["latency"]
 
-                for test in results[kernel][protocol][bw]:
-                    packet_sizes.append(test["packet_sz"])
-                    latency.append(test["end"]["streams"][0]["sender"]["mean_rtt"])
                 plt.xlabel("Packet sizes (bytes)")
-                plt.ylabel("Mean RTT latency (us)")
+                # tt = unitise_plot(sub["latency"], "Latency")
+                plt.ylabel("Latency (us)")
                 #pkt_ticks(packet_sizes)
-                plt.yticks(ticks(latency, 10))
-                plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-                plt.title(f"TCP Latency for kernel {kernel} - targeting {bw}b/s")
-                ax = plt.gca()
-                ax.yaxis.set_major_formatter('{x:9<5.1f}')
-
-                plt.plot(packet_sizes, latency, "bo", packet_sizes, latency, "k")
-                plt.savefig(f"../results/{kernel}-{bw}-latency.png")
+                # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+                plt.title(f"Latency - {protocol} targeting {bw}b/s")
+                plt.plot(sub["packets"], sub["latency"], label=f"{kernel}")
+            plt.yticks(ticks(y_largest_range, 10))
+            ax = plt.gca()
+            ax.yaxis.set_major_formatter('{x:9<5.1f}')
+            ax.legend()
+            plt.savefig(f"../results/{results.machinename}-st-{bw}-{protocol}-latency.png")               
 
 def iperf3_st_graphs_cpu(results):
     """
-    Generates graphs of CPU usage on receiver side against packet size
+    Generates plots of cpu against packet size for UDP/TCP results
     """
-    for kernel in results:
-        for protocol in results[kernel]:
-            for bw in results[kernel][protocol]:
-                plt.clf()
-                packet_sizes = []
-                cpu = []
+    for protocol in ["TCP", "UDP"]:
+        for bw in results.bws:
+            plt.clf()
+            y_range = []
+            for kernel in results.kernels:
+                # print(f"Graphing {protocol}-{bw}-{kernel}")
+                sub = {}
+                if protocol == "UDP":
+                    sub = results.get_result_st_udp(bw, kernel)
+                else:
+                    sub = results.get_result_st_tcp(bw, kernel)
+                if len(sub["cpu"]) == 0:
+                    continue
+                
+                for cpu in sub["cpu"]:
+                    if cpu not in y_range:
+                        y_range.append(cpu)
 
-                for test in results[kernel][protocol][bw]:
-                    packet_sizes.append(test["packet_sz"])
-                    cpu.append(test["end"]["cpu_utilization_percent"]["remote_total"])
                 plt.xlabel("Packet sizes (bytes)")
-                plt.ylabel("CPU usage (%)")
+                # tt = unitise_plot(sub["latency"], "Latency")
+                plt.ylabel("CPU Utilisation (%)")
                 #pkt_ticks(packet_sizes)
-                plt.yticks(ticks(cpu, 10))
-                plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-                plt.title(f"CPU utilisation for kernel {kernel} - {protocol} targeting {bw}b/s")
-                ax = plt.gca()
-                ax.yaxis.set_major_formatter('{x:9<5.1f}')
-                plt.plot(packet_sizes, cpu, "bo", packet_sizes, cpu, "k")
-                plt.savefig(f"../results/{kernel}-{bw}-{protocol}-CPU.png")
+                # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+                plt.title(f"CPU Utilisation - {protocol} targeting {bw[:len(bw)-1]}Mb/s")
+                plt.plot(sub["packets"], sub["cpu"], label=f"{kernel}")
+            plt.yticks(ticks(y_range, 10))
+            ax = plt.gca()
+            ax.yaxis.set_major_formatter('{x:9<5.1f}')
+            ax.legend()
+            plt.savefig(f"../results/{results.machinename}-st-{bw}-{protocol}-cpu.png")               
+
+def iperf3_mt_graphs_throughput(results):
+    """
+    Generates plots of throughput against packet size for UDP/TCP results
+    """
+    for protocol in ["UDP", "TCP"]:
+        for bw in results.bws:
+            plt.clf()
+            for kernel in results.kernels:
+                # print(f"Graphing {protocol}-{bw}-{kernel}")
+                sub = {}
+                if protocol == "UDP":
+                    sub = results.get_mt_result(bw, True, kernel)
+                else:
+                    sub = results.get_mt_result(bw, False, kernel)
+                if len(sub["throughput"]) == 0:
+                    continue
+                plt.xlabel("Packet sizes (bytes)")
+                tt = unitise_plot(sub["throughput"], "Throughput")
+                #pkt_ticks(packet_sizes)
+                plt.yticks(ticks(tt, 10))
+                # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+                plt.title(f"Throughput performance - {protocol} targeting {bw[:len(bw)-1]}Mb/s")
+                # sub["packets"].sort()
+                plt.plot(sub["packets"], tt, label=f"{kernel}")
+            ax = plt.gca()
+            ax.yaxis.set_major_formatter('{x:9<5.1f}')
+            ax.legend()
+            plt.savefig(f"../results/{results.machinename}-mt-{bw}-{protocol}-throughput.png")
+
+def iperf3_mt_graphs_cpu(results):
+    """
+    Generates plots of CPU utilisation against packet size for UDP/TCP results
+    """
+    for protocol in ["UDP", "TCP"]:
+        for bw in results.bws:
+            plt.clf()
+            y_range = []
+            for kernel in results.kernels:
+                # print(f"Graphing {protocol}-{bw}-{kernel}")
+                sub = {}
+                if protocol == "UDP":
+                    sub = results.get_mt_result(bw, True, kernel)
+                else:
+                    sub = results.get_mt_result(bw, False, kernel)
+                if len(sub["cpu"]) == 0:
+                    continue
+                
+                for cpu in sub["cpu"]:
+                    if cpu not in y_range:
+                        y_range.append(cpu)
+                
+                plt.xlabel("Packet sizes (bytes)")
+                plt.ylabel("CPU Utilisation (%)")
+                # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+                plt.title(f"Mean CPU Utilisation (per core) - {protocol} targeting {bw[:len(bw)-1]}Mb/s")
+                # sub["packets"].sort()
+                plt.plot(sub["packets"], sub["cpu"], label=f"{kernel}")
+            plt.yticks(ticks(y_range, 10))
+            ax = plt.gca()
+            ax.yaxis.set_major_formatter('{x:9<5.1f}')
+            ax.legend()
+            plt.savefig(f"../results/{results.machinename}-mt-{bw}-{protocol}-cpu.png")
+
+def iperf3_mt_graphs_latency(results):
+    """
+    Generates plots of latency against packet size for TCP results
+    """
+    for protocol in ["TCP"]:
+        for bw in results.bws:
+            plt.clf()
+            y_range = []
+            for kernel in results.kernels:
+                # print(f"Graphing {protocol}-{bw}-{kernel}")
+                sub = {}
+                sub = results.get_mt_result(bw, False, kernel)
+                if len(sub["latency"]) == 0:
+                    continue
+                
+                for latency in sub["latency"]:
+                    if latency not in y_range:
+                        y_range.append(latency)
+                
+                plt.xlabel("Packet sizes (bytes)")
+                plt.ylabel("Packet RTT (us)")
+                # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+                plt.title(f"Mean RTT latency per-core - {protocol} targeting {bw[:len(bw)-1]}Mb/s")
+                # sub["packets"].sort()
+                plt.plot(sub["packets"], sub["latency"], label=f"{kernel}")
+            plt.yticks(ticks(y_range, 10))
+            ax = plt.gca()
+            ax.yaxis.set_major_formatter('{x:9<5.1f}')
+            ax.legend()
+            plt.savefig(f"../results/{results.machinename}-mt-{bw}-{protocol}-latency.png")
+
+
 
 def ticks(data, num_ticks):
     """((float(p) * 8) / IDEAL_LATENCY) / 1000or a dataset
@@ -204,11 +324,11 @@ def iperf3_filesort(file):
 
 # everything below this line is bad and needs to be replaced
 class iperf_results():
-    def __init__(self, results):
+    def __init__(self, results, machinename):
         self.results = results
         pkt_sizes_udp = []
         pkt_sizes_tcp = []
-        
+        self.machinename = machinename
         kernels = []
         bws = []
         # Check packet sizes in the first test for both UDP and TCP
@@ -216,14 +336,17 @@ class iperf_results():
             if kernel not in kernels:
                 kernels.append(kernel)
             for bw in results[kernel]["st"]["TCP"]:
-                print(bw)
                 if bw not in bws:
                     bws.append(bw)
                 for test in results[kernel]["st"]["TCP"][bw]:
-                    pkt_sizes_udp.append(test["packet_sz"])
-                for test in results[kernel]["st"]["TCP"][bw]:
-                    pkt_sizes_tcp.append(test["packet_sz"])
-                
+                    if test["packet_sz"] not in pkt_sizes_tcp:
+                        pkt_sizes_tcp.append(test["packet_sz"])
+            for bw in results[kernel]["st"]["UDP"]:
+                if bw not in bws:
+                    bws.append(bw)    
+                for test in results[kernel]["st"]["UDP"][bw]:
+                    if test["packet_sz"] not in pkt_sizes_udp:
+                        pkt_sizes_udp.append(test["packet_sz"])
         # hacky but whatever
         self.sizes_udp = pkt_sizes_udp
         self.sizes_tcp = pkt_sizes_tcp
@@ -234,28 +357,29 @@ class iperf_results():
         throughput = []
         latency = []
         cpu = []
-        
+        packets = []
         if not udp:
-            for test in self.results[kernel]["st"]["UDP"][bw]:
+            for test in self.results[kernel]["st"]["TCP"][bw]:
                 throughput.append(float(test["end"]["sum_sent"]["bits_per_second"]) / 10**6)
                 latency.append(test["end"]["streams"][0]["sender"]["mean_rtt"])
                 cpu.append(test["end"]["cpu_utilization_percent"]["remote_total"])
-
-            return {"throughput" : throughput, "latency" : latency, "cpu" : cpu}
+                packets.append(test["packet_sz"])
+            return {"throughput" : throughput, "latency" : latency, "cpu" : cpu, "packets" : packets}
         else:
             try:
                 for test in self.results[kernel]["st"]["UDP"][bw]:
                     throughput.append(float(test["end"]["sum_sent"]["bits_per_second"]) / 10**6)
                     cpu.append(test["end"]["cpu_utilization_percent"]["remote_total"])
+                    packets.append(test["packet_sz"])
             except:
                 print(f"failed to open {bw}")
-            return {"throughput" : throughput, "cpu" : cpu}
+            return {"throughput" : throughput, "cpu" : cpu, "packets" : packets}
     
     def get_result_st_udp(self, bw, kernel):
         return self.get_st_result(bw, True, kernel)
 
     def get_result_st_tcp(self, bw, kernel):
-        return self.get_st_result(self, bw, False, kernel)
+        return self.get_st_result(bw, False, kernel)
 
     def get_mt_result(self, bw, udp, kernel):
         """
@@ -264,40 +388,51 @@ class iperf_results():
         throughput = []
         latency = []
         cpu = []
+        pkt_sizes = []
 
         if not udp:
             subtasks = []
-            for subtask in self.results[kernel]["mt"]["TCP"][bw]:
+            for subtask in self.results[kernel]["mt"]["TCP"]:
                 subtasks.append(subtask)
             
-            # this will crash with any incoherency in the json at all
-            for test in range(0, len(self.results[kernel]["st"]["TCP"][subtask][bw])):
+            # print(self.results[kernel]["st"]["TCP"])
+            # Iterate over the top level bandwidth, under the assumption that they match for all. They always *should*
+            for test in range(0, len(self.results[kernel]["mt"]["TCP"][subtask][bw])):
                 subthru = []
                 sublat = []
                 subcpu = []
                 for s in subtasks:
-                    subthru.append(float(self.results[kernel]["st"]["TCP"][subtask][bw][test]["end"]["sum_sent"]["bits_per_second"]) / 10**6)
-                    subcpu.append(float(self.results[kernel]["st"]["TCP"][subtask][bw][test]["end"]["cpu_utilization_percent"]["remote_total"]))
-                    sublat.append(self.results[kernel]["st"]["TCP"][subtask][bw][test]["end"]["streams"]["sender"]["mean_rtt"])
-                throughput.append(mean(subthru))
+                    subthru.append(float(self.results[kernel]["mt"]["TCP"][subtask][bw][test]["end"]["sum_sent"]["bits_per_second"]) / 10**6)
+                    subcpu.append(float(self.results[kernel]["mt"]["TCP"][subtask][bw][test]["end"]["cpu_utilization_percent"]["remote_total"]))
+                    sublat.append(self.results[kernel]["mt"]["TCP"][subtask][bw][test]["end"]["streams"][0]["sender"]["mean_rtt"])
+                    if self.results[kernel]["mt"]["TCP"][subtask][bw][test]["packet_sz"] not in pkt_sizes:
+                        pkt_sizes.append(self.results[kernel]["mt"]["TCP"][subtask][bw][test]["packet_sz"])
+                    
+                throughput.append(sum(subthru))
                 cpu.append(mean(subcpu))
                 latency.append(mean(sublat))
-            return {"throughput" : throughput, "latency" : latency, "cpu" : cpu}
+            pkt_sizes.sort(key=lambda pkt: int(pkt))
+            return {"throughput" : throughput, "latency" : latency, "cpu" : cpu, "packets" : pkt_sizes}
         else:
             subtasks = []
-            for subtask in self.results[kernel]["mt"]["UDP"][bw]:
+            for subtask in self.results[kernel]["mt"]["UDP"]:
                 subtasks.append(subtask)
             
             # this will crash with any incoherency in the json at all
-            for test in range(0, len(self.results[kernel]["st"]["UDP"][subtask][bw])):
+            for test in range(0, len(self.results[kernel]["mt"]["UDP"][subtask][bw])):
                 subthru = []
                 subcpu = []
                 for s in subtasks:
-                    subthru.append(float(self.results[kernel]["st"]["UDP"][subtask][bw][test]["end"]["sum_sent"]["bits_per_second"]) / 10**6)
-                    subcpu.append(float(self.results[kernel]["st"]["UDP"][subtask][bw][test]["end"]["cpu_utilization_percent"]["remote_total"]))
-                throughput.append(mean(subthru))
-                cpu.append(mean(subcpu))
-            return {"throughput" : throughput, "cpu" : cpu}
+                    subthru.append(float(self.results[kernel]["mt"]["UDP"][subtask][bw][test]["end"]["sum_sent"]["bits_per_second"]) / 10**6)
+                    subcpu.append(float(self.results[kernel]["mt"]["UDP"][subtask][bw][test]["end"]["cpu_utilization_percent"]["remote_total"]))
+                    if self.results[kernel]["mt"]["UDP"][subtask][bw][test]["packet_sz"] not in pkt_sizes:
+                        pkt_sizes.append(self.results[kernel]["mt"]["UDP"][subtask][bw][test]["packet_sz"])
+                    
+                throughput.append(sum(subthru))
+                cpu.append(sum(subcpu))
+            pkt_sizes.sort(key=lambda pkt: int(pkt))
+            # print(pkt_sizes)
+            return {"throughput" : throughput, "cpu" : cpu, "packets" : pkt_sizes}
 
 
     # def mean_throughput_by_major(self, bw, udp):
@@ -306,4 +441,5 @@ class iperf_results():
 
 # For testingg
 if __name__ == "__main__":
-    finalise_iperf3("/home/mattr/tor-scripts/kernelmark/output", "haswell3")
+    import sys
+    finalise_iperf3("/home/mattr/tor-scripts/kernelmark/output", sys.argv[1])
