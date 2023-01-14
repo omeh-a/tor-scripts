@@ -917,3 +917,176 @@ ALERT: Kernel version 5.12.19 built successfully.
 ALERT: [01m ### STARTING TEST: kernel 4.9.336 ###[00m
 ALERT: Kernel version 4.9.336 built successfully.
 ALERT: Kernel testing complete! 3 successful out of 3 builds.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: Skipping test on kernel 5.12.19 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 4.9.336 ###[00m
+ALERT: Kernel version 4.9.336 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: Skipping test on kernel 5.12.19 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 4.9.336 ###[00m
+ALERT: Kernel version 4.9.336 built successfully.
+ALERT: kernelmark started. target: haswell3 kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: haswell3 kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: haswell3 kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: Skipping test on kernel 5.12.19 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 4.9.336 ###[00m
+ALERT: Kernel version 4.9.336 built successfully.
+ALERT: Skipping test on kernel 4.9.336 because it is already built and a test has run.
+ALERT: Kernel testing complete! 3 successful out of 3 builds.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: Skipping test on kernel 5.12.19 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 4.9.336 ###[00m
+ALERT: Kernel version 4.9.336 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: Skipping test on kernel 5.12.19 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 4.9.336 ###[00m
+ALERT: Kernel version 4.9.336 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: Skipping test on kernel 5.12.19 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 4.9.336 ###[00m
+ALERT: Kernel version 4.9.336 built successfully.
+ALERT: Skipping test on kernel 4.9.336 because it is already built and a test has run.
+ALERT: Kernel testing complete! 3 successful out of 3 builds.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: Skipping test on kernel 6.1.1 because it is already built and a test has run.
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.

@@ -18,9 +18,20 @@ TARGET_BW = 1000 # in megabits / sec
 IPERF_PORT1 = 5000
 
 pkt_sizes = [
-    1448, 1024, 512, 256, 128, 90
+    1448
+    , 1024, 512, 256, 128, 90
 ]
-# pkt_sizes = [1024]
+
+MAX_PKT_SZ = 1448
+
+bws = [
+    750,
+    500,
+    250,
+    100,
+    50
+]
+
 MAX_CPUS = 8
 
 def test(machine, kernel_ver, local):
@@ -72,6 +83,19 @@ def test(machine, kernel_ver, local):
         # ipbench is cooked, so skip that part and just do iperf3 for now
 
         # Invoke iperf3
+        # for bw in bws:
+        #     # TCP 100% bw
+        #     iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, False, local)
+
+        #     # UDP 100% bw
+        #     iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, True, local)
+            
+        #     # TCP multicore
+        #     iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, False, machine.logical_cpus)
+
+        #     # # UDP multicore
+        #     iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, True, machine.logical_cpus)
+
         for sz in pkt_sizes:
             # TCP 100% bw
             iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, False, local)
@@ -106,7 +130,7 @@ def iperf3_test_single(machine, kernel_ver, pkt_size, bw, udp, local):
     NOTE: if not using this with the local flag, it will not work outside of the TS network.
     """
 
-    iperf_common = f"-c {machine.ip} -t 30 -J --connect-timeout 5000 -p 5000"
+    iperf_common = f"-c {machine.ip} -t 30 -J --connect-timeout 5000 -p 5000 --bidir"
     f = ""
     if local:
         if udp:
@@ -135,7 +159,7 @@ def iperf3_test_multi(machine, kernel_ver, pkt_size, bw, udp, num_cpus):
     if num_cpus > MAX_CPUS:
         print(f"Tried to test with too many cores! Max={MAX_CPUS} Requested={num_cpus}.")
     
-    iperf_common = f"-c {machine.ip} -t 30 -J --connect-timeout 5000 -b {int(bw/num_cpus)}M --length {pkt_size}"
+    iperf_common = f"-c {machine.ip} -t 30 -J --connect-timeout 5000 -b {int(bw/num_cpus)}M --length {pkt_size} --bidir"
     if udp:
         iperf_common += " -u"
     
