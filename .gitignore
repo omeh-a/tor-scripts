@@ -51,4 +51,7 @@ dkms.conf
 
 
 # ipbench
-
+runbench/*
+!runbench/runbench
+!runbench/ununmarshall.py
+!runbench/stopbench
