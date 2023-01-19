@@ -18,8 +18,8 @@ TARGET_BW = 1000 # in megabits / sec
 IPERF_PORT1 = 5000
 
 pkt_sizes = [
-    1448
-    , 1024, 512, 256, 128, 90
+        # 1448,
+    1024, 512, 256, 128, 90
 ]
 
 MAX_PKT_SZ = 1448
@@ -83,31 +83,31 @@ def test(machine, kernel_ver, local):
         # ipbench is cooked, so skip that part and just do iperf3 for now
 
         # Invoke iperf3
-        # for bw in bws:
-        #     # TCP 100% bw
-        #     iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, False, local)
-
-        #     # UDP 100% bw
-        #     iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, True, local)
+#        for bw in bws:
+ #           # TCP 100% bw
+#            iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, False, local)
+#
+#           # UDP 100% bw
+#           iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, True, local)
             
-        #     # TCP multicore
-        #     iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, False, machine.logical_cpus)
-
-        #     # # UDP multicore
-        #     iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, True, machine.logical_cpus)
-
-        for sz in pkt_sizes:
-            # TCP 100% bw
-            iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, False, local)
-
-            # UDP 100% bw
-            iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, True, local)
-            
-            # TCP multicore
-            iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, False, machine.logical_cpus)
+#           # TCP multicore
+#           iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, False, machine.logical_cpus)
 
             # # UDP multicore
-            iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, True, machine.logical_cpus)
+ #          iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, True, machine.logical_cpus)
+
+ #       for sz in pkt_sizes:
+            # TCP 100% bw
+  #          iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, False, local)
+
+            # UDP 100% bw
+   #         iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, True, local)
+            
+            # TCP multicore
+    #        iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, False, machine.logical_cpus)
+
+            # # UDP multicore
+     #       iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, True, machine.logical_cpus)
 
 
             # # TCP 10% bw
@@ -129,8 +129,9 @@ def iperf3_test_single(machine, kernel_ver, pkt_size, bw, udp, local):
     Run an iperf3 test in a one-one test - one client and one server both single threaded.
     NOTE: if not using this with the local flag, it will not work outside of the TS network.
     """
-
-    iperf_common = f"-c {machine.ip} -t 30 -J --connect-timeout 5000 -p 5000 --bidir"
+    time.sleep(5)
+    print(f"Testing {machine.ip} - {pkt_size} bytes - {bw}")
+    iperf_common = f"-c {machine.ip} -t 50 -J --connect-timeout 5000 -p 5000 --bidir"
     f = ""
     if local:
         if udp:
@@ -156,10 +157,12 @@ def iperf3_test_multi(machine, kernel_ver, pkt_size, bw, udp, num_cpus):
     """
     Run multicore tests on num_cpus.
     """
+    time.sleep(5)  
+    print(f"Multicore testing {machine.ip} - {pkt_size} bytes - {bw}")
     if num_cpus > MAX_CPUS:
         print(f"Tried to test with too many cores! Max={MAX_CPUS} Requested={num_cpus}.")
     
-    iperf_common = f"-c {machine.ip} -t 30 -J --connect-timeout 5000 -b {int(bw/num_cpus)}M --length {pkt_size} --bidir"
+    iperf_common = f"-c {machine.ip} -t 50 -J --connect-timeout 5000 -b {int(bw/num_cpus)}M --length {pkt_size} --bidir"
     if udp:
         iperf_common += " -u"
     
@@ -171,7 +174,7 @@ def iperf3_test_multi(machine, kernel_ver, pkt_size, bw, udp, num_cpus):
     os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f ~/iperf3/vb01/log && iperf3 {iperf_common} -p 5000 --logfile ~/iperf3/vb01/log'")
 
     # once tester 1 unblocks, we can collect results and move on. wait, just in case.
-    time.sleep(3)
+    time.sleep(5)
 
     for i in range(0, num_cpus):
         print(f"Getting info from vb0{str(i+1)}")

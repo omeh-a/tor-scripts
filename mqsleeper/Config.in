@@ -1,0 +1,6 @@
+config BR2_PACKAGE_MQSLEEPER
+	bool "mqsleeper"
+	help
+	  Program which exist and prints "Ostritch" upon receiving a UDP packet.
+
+	  https://github.com/omeh-a/tor-scripts

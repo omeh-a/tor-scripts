@@ -1,10 +1,11 @@
 CC=gcc
-CFLAGS=
 DEPS = utecho.h
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+.PHONY: clean
 
-utecho: utecho.o tcp_echo.o udp_echo.o
-	$(CC) -o utecho utecho.o tcp_echo.o udp_echo.o
 
+utecho: utecho.c udp_echo.c tcp_echo.c $(DEPS)
+	$(CC) -o '$@' utecho.c udp_echo.c tcp_echo.c $(DEPS) 
+
+clean:
+	rm utecho

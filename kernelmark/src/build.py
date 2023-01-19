@@ -127,7 +127,7 @@ def write_kernel_headers(kernel_ver, file):
     
     # Write final at least
     if int(vvv[0]) >= 5 and (int(vvv[1]) >= 16 or int(vvv[0]) > 5):
-        file.write("BR2_TOOLCHAIN_HEADERS_AT_LEAST=\"5.16\"\n")
+        file.write("BR2_TOOLCHAIN_HEADERS_AT_LEAST=\"\"\n")
         file.write(f"BR2_DEFAULT_KERNEL_HEADERS=\"5.16\"\n")
     else:
         file.write(f"BR2_TOOLCHAIN_HEADERS_AT_LEAST=\"{vvv[0]}.{vvv[1]}\"\n")

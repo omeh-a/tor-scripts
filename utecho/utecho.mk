@@ -2,7 +2,7 @@
 # Based off of https://github.com/cirosantilli/buildroot/tree/out-of-tree-2016.05
 
 UTECHO_VERSION = 1.0
-UTECHO_SITE = ~/tor-scripts/utecho/src
+UTECHO_SITE = ./package/utecho/src
 UTECHO_SITE_METHOD = local
 
 define UTECHO_BUILD_CMDS

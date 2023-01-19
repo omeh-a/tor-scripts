@@ -8,7 +8,6 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 
-#define DEBUG 1
 #define BUFFER_SIZE 5000
 #define MAX_BACKLOG 50
 #define MODE_UDP 0

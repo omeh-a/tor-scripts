@@ -6,14 +6,14 @@ TINNIES="`seq -w 01 10`"
 # Address/name of target on the Tinny network
 # for interface under test.
 # For SOCKTYPE==RAW, set to MAC address of card.
-TESTTARGETIP=172.16.1.82 # haswell3
+TESTTARGETIP=172.16.1.165 # imx8mm
 #TESTTARGETMAC=00:50:ba:38:d9:d6
 TESTTARGETMAC=${TESTTARGETMAC:-34:17:eb:a5:57:64}
 
 # Address/name of target on the controlnetwork
 # for control.
-TARGET=haswell3.iot.keg.cse.unsw.edu.au
-TARGET_PORT=8037
+TARGET=imx8mm.iot.keg.cse.unsw.edu.au
+TARGET_PORT=8036
 PORT=1235
 #PORT=7
 #
@@ -102,10 +102,10 @@ do
 	SAMPLES=`echo "10 * $BPS / $i / 8" | bc`
 
 	ipbench -r  $clients --test-target=$TESTTARGET --test=latency \
-		--test-args="bps=$BPS,size=$i,socktype=$SOCKTYPE,samples=$SAMPLES,warmup=$WARMUP,cooldown=$COOLDOWN,iface=enp3s0" --test-port=$PORT \
-		--target-test="cpu_target" \
-		--target-test-hostname=$TARGET \
-		--target-test-args="warmup=$WARMUP,cooldown=$COOLDOWN,holdoff=$HOLDOFF" \
+		--test-args="bps=$BPS,size=$i,socktype=$SOCKTYPE,samples=$SAMPLES,warmup=$WARMUP,cooldown=$COOLDOWN,iface=enp3s0" --test-port=$PORT #\
+	#	--target-test="cpu_target" \
+#		--target-test-hostname=$TARGET \
+#		--target-test-args="warmup=$WARMUP,cooldown=$COOLDOWN,holdoff=$HOLDOFF" \
 
 done
 done

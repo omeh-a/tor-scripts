@@ -1,0 +1,2 @@
+#!/bin/sh
+yes ABORT | for x in `seq --equal-width 01 10`; do telnet vb$x 8036; done
