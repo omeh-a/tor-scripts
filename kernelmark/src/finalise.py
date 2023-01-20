@@ -56,10 +56,10 @@ def finalise_ipbench(out_dir, machine_name, sender):
                 x_range.append(csv["Requested-throughput"][i])
                 x_range.append(csv["Achieved-throughput-sent"][i])
             # convert to megabits
-            for i in range(len(requested)):
-                requested[i] = float(requested[i]) / 10**6
-                achieved[i] = float(achieved[i]) / 10**6
-
+        for i in range(len(requested)):
+            requested[i] = int(requested[i]) / (10**6)
+            achieved[i] = int(achieved[i]) / (10**6)
+        print(f"Requested: {requested} \n Achieved: {achieved}")
         plt.plot(requested, achieved, label=f"{kernel} - {key}")
 
     
@@ -69,16 +69,16 @@ def finalise_ipbench(out_dir, machine_name, sender):
     
     # convert axes to megabits
     for i in range(len(x_range)):
-        x_range[i] = float(x_range[i]) / 10**6
+        x_range[i] = int(x_range[i]) / 10**6
     for i in range(len(y_range)):
-        y_range[i] = float(y_range[i]) / 10**6
+        y_range[i] = int(y_range[i]) / 10**6
     
     
     plt.xlabel("Requested throughput (MBit/s)")
     plt.ylabel("Achieved throughput (MBit/s)")
     plt.title(f"{machine_name} {kernel} - ipbench Requested vs Achieved throughput ({key})")
-    # plt.yticks(ticks(y_range, 10))
-    # plt.xticks(ticks(x_range, 10))
+    plt.yticks(ticks(y_range, 10))
+    plt.xticks(ticks(x_range, 10))
     ax = plt.gca()
     ax.legend()
     ax.yaxis.set_major_formatter('{x:9<5.1f}')
@@ -529,7 +529,6 @@ def pkt_ticks(pkt_sizes):
         ticks.append(int(p))
     plt.xticks(ticks, pkt_sizes)
     
-
 def iperf3_filesort(file):
     return int(file.split("-")[4].split(".")[0])
 
