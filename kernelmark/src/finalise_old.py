@@ -533,117 +533,159 @@ def iperf3_filesort(file):
     return int(file.split("-")[4].split(".")[0])
 
 
-
+# everything below this line is bad and needs to be replaced
 class iperf_results():
-    def __init__(self, out_dir, machine_name):
-        """
-        Take location, collate tests.
-
-        Dict formats for st/mt tests:
-        {
-            bandwidth : [tests sorted by packet size],
-            bandwidth1 : ...
-            ...
-
-        }
-
-        For MT, there is another array wrapping above this structure
-
-        Tests:
-        {
-            "packet_sz" : packet size,
-            "rtt" : mean rtt,
-            "cpu" : target cpu utilisation (mean)
-            "throughput_send": mean throughput over all runs, sender. If monodirectional test this becomes only field for tp.
-            "throughput_receive": mean throughput over all runs, receiver.
-            "raw" : raw json of test
-        }
-        """
-        
-        self.udp_st_tests = {}
-        self.udp_mt_tests = []
-        self.tcp_st_tests = {}
-        self.tcp_mt_tests = []
-
-        # Find all tests
-        for kernel in os.listdir(f"{out_dir}/{machine_name}"):
-            for test in os.listdir(f"{out_dir}/{machine_name}/{kernel}"):
-                if not ".test" in test or not "iperf3" in test:
-                    continue
-                with open(f"{out_dir}/{machine_name}/{kernel}/{test}") as f:
-                    try:
-                        result = json.load(f)
-                    except:
-                        print(f"Failed to open {machine_name} - {kernel} {test}")
-                        continue
-
-                    if len(result["intervals"]) == 0:
-                        print(f"Test {machine_name} - {kernel} {test} failed to run. Skipping.")
-                        continue
-                    
-                    # extract bandwidth
-                    bw = test.split("-")[3].split("m")[0]
-
-                    test = {
-                        "packet_sz" : test.split("-")[3],
-                        "rtt" : result["end"]["streams"][0]["sender"]["mean_rtt"],
-                        "cpu" : result["end"]["cpu_utilization_percent"]["host_total"],
-                        "throughput_send" : float(result["end"]["sum_sent"]["bits_per_second"] / (10**6)),
-                        "throughput_receive" : float(result["end"]["sum_sent_bidir_reverse"]["bits_per_second"] / (10**6)),
-                        "raw" : result
-                    }
-
-                    # check for mt/st
-                    if test.split("-")[1] == "st":
-                        # protocol
-                        if test.split("-")[2] == "udp":
-                            self.udp_st_tests = self.append_dict(self.udp_st_tests, test, bw, -1)
-                        else:
-                            self.tcp_st_tests = self.append_dict(self.tcp_st_tests, test, bw, -1)
-                    else:
-                        mt_num = int(test.split("-")[1].split("mt")[1]) - 1
-                        if test.split("-")[2] == "udp":
-                            self.udp_mt_tests = self.append_dict(self.udp_mt_tests, test, bw, mt_num)
-                        else:
-                            self.tcp_mt_tests = self.append_dict(self.tcp_mt_tests, test, bw, mt_num)
+    def __init__(self, results, machinename):
+        self.results = results
+        pkt_sizes_udp = []
+        pkt_sizes_tcp = []
+        self.machinename = machinename
+        kernels = []
+        bws = []
+        # Check packet sizes in the first test for both UDP and TCP
+        for kernel in results:
+            if kernel not in kernels:
+                kernels.append(kernel)
+            for bw in results[kernel]["st"]["TCP"]:
+                if bw not in bws:
+                    bws.append(bw)
+                for test in results[kernel]["st"]["TCP"][bw]:
+                    if test["packet_sz"] not in pkt_sizes_tcp:
+                        pkt_sizes_tcp.append(test["packet_sz"])
+            for bw in results[kernel]["st"]["UDP"]:
+                if bw not in bws:
+                    bws.append(bw)    
+                for test in results[kernel]["st"]["UDP"][bw]:
+                    if test["packet_sz"] not in pkt_sizes_udp:
+                        pkt_sizes_udp.append(test["packet_sz"])
+        # hacky but whatever
+        self.sizes_udp = pkt_sizes_udp
+        self.sizes_tcp = pkt_sizes_tcp
+        self.bws = bws
+        self.kernels = kernels
     
-    
-    def append_dict(self, target, test, bw, mt):
-        """
-        Append a test to an internal dict. Returns the modified dict
-        """
-
-        # ST case
-        if mt == -1:
-            # Check that target bw exists
-            try:
-                _ = target[bw]
-            except KeyError:
-                target[bw] = []
-
-            # Insert
-            target[bw].append(test)
-        
-        # MT case
+    def get_st_result(self, bw, udp, kernel):
+        throughput = []
+        throughput_reverse = []
+        latency = []
+        cpu = []
+        packets = []
+        if not udp:
+            for test in self.results[kernel]["st"]["TCP"][bw]:
+                throughput.append(float(test["end"]["sum_sent"]["bits_per_second"]) / 10**6)
+                latency.append(test["end"]["streams"][0]["sender"]["mean_rtt"])
+                cpu.append(test["end"]["cpu_utilization_percent"]["host_total"])
+                packets.append(test["packet_sz"])
+                try:
+                    throughput_reverse.append(float(test["end"]["sum_sent_bidir_reverse"]["bits_per_second"]) / 10**6)
+                except KeyError:
+                    print(f"No bidir result for {kernel}")
+            return {"throughput" : throughput, "latency" : latency, "cpu" : cpu, 
+                    "packets" : packets, "throughput_reverse" : throughput_reverse}
         else:
-            # Check if we have at least n entries in the MT array
-            while len(target) < mt:
-                target.append({})
-            
-            # Check that target bw exists
             try:
-                _ = target[mt][bw]
+                for test in self.results[kernel]["st"]["UDP"][bw]:
+                    throughput.append(float(test["end"]["sum_sent"]["bits_per_second"]) / 10**6)
+                    cpu.append(test["end"]["cpu_utilization_percent"]["host_total"])
+                    packets.append(test["packet_sz"])
+                    
+                    try:
+                        throughput_reverse.append(float(test["end"]["sum_sent_bidir_reverse"]["bits_per_second"]) / 10**6)
+                    except KeyError:
+                        print(f"No bidir result for {kernel}")
+
+            except:
+                print(f"failed to open {bw}")
+            return {"throughput" : throughput, "cpu" : cpu, "packets" : packets,
+                    "throughput_reverse" : throughput_reverse}
+    
+    def get_st_appliedactual(self, udp, kernel):
+        """
+        Get bw/throughput for a given kernel
+        """
+        throughput = []
+        bw = []
+        protocol = "TCP"
+        if udp:
+            protocol = "UDP"
+        # print(kernel)
+        # print(self.results)
+        # print(self.results[kernel])
+        # print(self.results[kernel]["st"][protocol])
+        for b in self.results[kernel]["st"][protocol]:
+            print(b)
+            for test in range(0, len(self.results[kernel]["st"][protocol][b])):
+                t = self.results[kernel]["st"][protocol][b][test]
+                if t["packet_sz"] == str(MAX_PKT_SZ):
+                    throughput.append(float(self.results[kernel]["st"][protocol][b][test]["end"]["sum_sent"]["bits_per_second"]) / 10**6)
+                    bw.append(int(b[:len(b)-1]))
+        return {"throughput": throughput, "bw" : bw}
+
+    def get_result_st_udp(self, bw, kernel):
+        return self.get_st_result(bw, True, kernel)
+
+    def get_result_st_tcp(self, bw, kernel):
+        return self.get_st_result(bw, False, kernel)
+
+    def get_mt_result(self, bw, udp, kernel):
+        """
+        Returns an averaged set of results from a group of multithreaded results
+        """
+        machines = {}
+        tests = []
+
+        # Iterate over all results to find machines
+        protocol = "TCP"
+        if udp:
+            protocol = "UDP"
+        for machine in self.results[kernel]["mt"][protocol]:
+            try:
+                _ = machines[machine]
             except KeyError:
-                target[mt][bw] = []
+                machines[machine] = {}
 
-            # Insert
-            target[mt][bw].append(test)
+            for t in range(0, len(self.results[kernel]["mt"][protocol][machine][bw])):
+                test = self.results[kernel]["mt"][protocol][machine][bw][t]
+                ps = str(test["packet_sz"])
+                if ps not in tests:
+                    tests.append(ps)
+                try:
+                    _ = machines[machine][ps]
+                except KeyError:
+                    machines[machine][ps] = {"throughput" : [], "latency" : [], "cpu" : []}
+                
+                machines[machine][ps]["throughput"].append(float(self.results[kernel]["mt"]["TCP"][machine][bw][t]["end"]["sum_sent"]["bits_per_second"]) / 10**6)
+                machines[machine][ps]["cpu"].append(float(self.results[kernel]["mt"]["TCP"][machine][bw][t]["end"]["cpu_utilization_percent"]["host_total"]))
+                if not udp:
+                    machines[machine][test["packet_sz"]]["latency"].append(test["end"]["streams"][0]["sender"]["mean_rtt"])
+        # Data collected. Now collate
+        throughput = []
+        latency = []
+        cpu = []
+        # print(machines)
+        for test in tests:
+            st = []
+            sl = []
+            sc = []
+            for machine in machines:
+                try:
+                    st.append(sum(machines[machine][test]["throughput"]))
+                    sc.append(mean(machines[machine][test]["cpu"]))
+                    if not udp:
+                        sl.append(mean(machines[machine][test]["latency"]))
+                except KeyError:
+                    print(f"Missing test {test} for {machine}!")
+            throughput.append(sum(st))
+            cpu.append(mean(sc))
+            if not udp:
+                latency.append(mean(sl))
 
-        return target
+        return {"throughput" : throughput, "cpu" : cpu, "latency" : latency, "packets" : tests}
 
 
-
-
+    # def mean_throughput_by_major(self, bw, udp):
+    #     # Get best performing throughput for each major version
+        
 
 # For testingg
 if __name__ == "__main__":
@@ -652,25 +694,8 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("USAGE: finalise.py [machine] [test1] ... [test n] \n tests: ipbench, iperf3")
     
-    if "ipbench" in sys.results = {}
-    
-    # Find all tests
-    for kernel in os.listdir(f"{out_dir}/{machine_name}"):
-        # sub = []
-        # Open each test
-        try:
-            _ = results[kernel]
-        except KeyError:argv:
+    if "ipbench" in sys.argv:
         finalise_ipbench(out_dir, sys.argv[1], True)
         finalise_ipbench(out_dir, sys.argv[1], False)
     if "iperf3" in sys.argv:
         finalise_iperf3(out_dir, sys.argv[1])
-results = {}
-    
-    # Find all tests
-    for kernel in os.listdir(f"{out_dir}/{machine_name}"):
-        # sub = []
-        # Open each test
-        try:
-            _ = results[kernel]
-        except KeyError:
