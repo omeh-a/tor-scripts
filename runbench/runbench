@@ -100,7 +100,7 @@ do
 	BPS=`echo "($i * ${BWPEAK})/(($i+38)*$ntin)"|bc`
 	# Calculate samples for 10-second test run.
 	SAMPLES=`echo "10 * $BPS / $i / 8" | bc`
-
+        echo "${BPS} test started!"
 	ipbench -r  $clients --test-target=$TESTTARGET --test=latency \
 		--test-args="bps=$BPS,size=$i,socktype=$SOCKTYPE,samples=$SAMPLES,warmup=$WARMUP,cooldown=$COOLDOWN,iface=enp3s0" --test-port=$PORT \
 		--target-test="cpu_target" \

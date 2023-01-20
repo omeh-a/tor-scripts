@@ -652,25 +652,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("USAGE: finalise.py [machine] [test1] ... [test n] \n tests: ipbench, iperf3")
     
-    if "ipbench" in sys.results = {}
-    
-    # Find all tests
-    for kernel in os.listdir(f"{out_dir}/{machine_name}"):
-        # sub = []
-        # Open each test
-        try:
-            _ = results[kernel]
-        except KeyError:argv:
-        finalise_ipbench(out_dir, sys.argv[1], True)
-        finalise_ipbench(out_dir, sys.argv[1], False)
+    if "ipbench" in sys.argv:
+        finalise_ipbench(out_dir, sys.argv[1])
     if "iperf3" in sys.argv:
         finalise_iperf3(out_dir, sys.argv[1])
-results = {}
-    
-    # Find all tests
-    for kernel in os.listdir(f"{out_dir}/{machine_name}"):
-        # sub = []
-        # Open each test
-        try:
-            _ = results[kernel]
-        except KeyError:

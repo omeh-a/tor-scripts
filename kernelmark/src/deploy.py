@@ -19,3 +19,14 @@ def deploy(machine, kernel_ver):
             -f {out_dir}/{machine.name}/{kernel_ver}/rootfs.cpio")
     return result 
     
+
+if __name__ == "__main__":
+    import sys
+    from machine import Machine
+    import json
+    if len(sys.argv) < 3:
+        print("USAGE: deploy.py [machine] [kernel]")
+        exit(0)
+    mf = json.load(open("../conf/machines.json"))
+    m = Machine(sys.argv[1], mf[sys.argv[1]])
+    deploy(m, sys.argv[2])
