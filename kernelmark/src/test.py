@@ -14,7 +14,7 @@ from error import *
 from machine import Machine
 
 MAX_RETRIES = 40
-TARGET_BW = 1000 # in megabits / sec
+TARGET_BW = 1000  # in megabits / sec
 IPERF_PORT1 = 5000
 
 pkt_sizes = [
@@ -33,6 +33,7 @@ bws = [
 ]
 
 MAX_CPUS = 8
+
 
 def test(machine, kernel_ver, local):
     if __name__ != "__main__":
@@ -54,7 +55,8 @@ def test(machine, kernel_ver, local):
 
             while True:
                 if retries > MAX_RETRIES:
-                    print(f"Tester thread failed to connect to {machine.name} on kernel {kernel_ver}")
+                    print(
+                        f"Tester thread failed to connect to {machine.name} on kernel {kernel_ver}")
                     exit()
                 try:
                     sock.sendto(b"Emu", (machine.ip, 1345))
@@ -68,7 +70,7 @@ def test(machine, kernel_ver, local):
                     else:
                         print("Server found")
                         break
-                    
+
                 except socket.error as e:
                     # print(f"Failed! {e}")
                     retries += 1
@@ -79,35 +81,35 @@ def test(machine, kernel_ver, local):
 
             # Server is ready. Wait again to give iperf time to start
             time.sleep(5)
-        
+
         # ipbench is cooked, so skip that part and just do iperf3 for now
 
         # Invoke iperf3
-#        for bw in bws:
- #           # TCP 100% bw
-#            iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, False, local)
-#
-#           # UDP 100% bw
-#           iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, True, local)
-            
-#           # TCP multicore
-#           iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, False, machine.logical_cpus)
-
-            # # UDP multicore
- #          iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, True, machine.logical_cpus)
-
- #       for sz in pkt_sizes:
+        for bw in bws:
             # TCP 100% bw
-  #          iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, False, local)
+            iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, False, local)
 
             # UDP 100% bw
-   #         iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, True, local)
+            iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, True, local)
             
             # TCP multicore
-    #        iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, False, machine.logical_cpus)
+            iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, False, machine.logical_cpus)
 
-            # # UDP multicore
-     #       iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, True, machine.logical_cpus)
+            # UDP multicore
+            iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, True, machine.logical_cpus)
+
+        for sz in pkt_sizes:
+            # TCP 100% bw
+            iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, False, local)
+
+            # UDP 100% bw
+            iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, True, local)
+                
+            # TCP multicore
+            iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, False, machine.logical_cpus)
+
+            # UDP multicore
+            iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, True, machine.logical_cpus)
 
 
             # # TCP 10% bw
@@ -198,6 +200,6 @@ def tests_exist(machine, kernel_ver):
 # Test test for standalone testing of this test
 if __name__ == "__main__":
     mf = json.load(open("../conf/machines.json"))
-    m = Machine("haswell3", mf["haswell3"])
-    test(m, "6.1.1", False)
+    m = Machine("imx8mm", mf["imx8mm"])
+    test(m, "debian_bullseye", False)
     exit()

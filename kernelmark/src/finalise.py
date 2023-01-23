@@ -204,25 +204,34 @@ def iperf3_st_graphs_latency(results):
     """
     Generates plots of latency against packet size for TCP results
     """
+    plt.clf()
+    y_largest_range = []
     for kernel in results.kernels:
-        for test in results.get_st_test_pktsize_tcp(kernel):
-            plt.clf()
-            y_largest_range = []
-                
-            if y_largest_range == [] or max(y_largest_range) < max(test[0]["rtt"]):
-                y_largest_range = test[0]["rtt"]
+        test = results.get_st_test_pktsize_tcp(kernel)
+        if test == None:
+            continue
+        
 
-            plt.xlabel("Packet sizes (bytes)")
-            plt.ylabel("Latency (us)")
-            #pkt_ticks(packet_sizes)
-            # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-            plt.title(f"{results.machinename} - ST Latency - TCP targeting 1000Mb/s")
-            plt.plot(test[1], test[0]["rtt"], label=f"{kernel}")
-        plt.yticks(ticks(y_largest_range, 10))
-        ax = plt.gca()
-        ax.yaxis.set_major_formatter('{x:9<5.1f}')
-        ax.legend()
-        plt.savefig(f"../results/{results.machinename}-st-1000m-latency.png")               
+        print(test)
+        # print(test[0])
+
+        # if y_largest_range == [] or max(y_largest_range) < max(test[throughput_type]):
+        for element in test["rtt"]:
+            y_largest_range.append(element)
+
+        plt.xlabel("Packet sizes (bytes)")
+        plt.ylabel("Latency (us)")
+        # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+        plt.plot(test["pkt_szs"], test["rtt"], label=f"{kernel}")
+    plt.title(f"{results.machinename} - ST Latency - TCP targeting 1000Mb/s")
+    plt.yticks(ticks(y_largest_range, 10))
+    ax = plt.gca()
+    ax.yaxis.set_major_formatter('{x:9<5.1f}')
+    ax.legend()
+    s = f"../results/{results.machinename}-st-1000m-rtt.png"
+    plt.savefig(s)  
+    print(f"Saved {s}")
+               
 
 def iperf3_st_graphs_cpu(results):
     """
@@ -543,7 +552,7 @@ class iperf_results():
                     bw = iperf_out.split("-")[3].split("m")[0]
                     protocol = iperf_out.split("-")[2]
                     test = {}
-                    if protocol == "TCP":
+                    if protocol == "tcp":
                         test = {
                             "packet_sz" : iperf_out.split("-")[4].split(".")[0],
                             "rtt" : result["end"]["streams"][0]["sender"]["mean_rtt"],
@@ -681,6 +690,7 @@ class iperf_results():
             "throughput_send" : [],
             "cpu" : [],
             "throughput_receive" : [],   
+            "rtt" : []
         }
         bw = '0'
         try:

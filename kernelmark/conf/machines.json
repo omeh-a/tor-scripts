@@ -14,7 +14,7 @@
         "soc" : "imx8mm",
         "kernel_defconfig" : "aarch64",
         "device_tree" : "",
-        "ip" : "172.16.1.165",
+        "ip" : "172.16.1.184",
         "mac" : "34:17:eb:a5:57:64",
         "forward" : "imx8mm.iot.keg.cse.unsw.edu.au",
         "logical_cpus" : 4
