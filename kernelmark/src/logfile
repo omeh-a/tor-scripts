@@ -1525,3 +1525,31 @@ ALERT: [01m ### STARTING TEST: kernel 4.9.336 ###[00m
 ALERT: Kernel version 4.9.336 built successfully.
 ALERT: Not testing because buildonly enabled!
 ALERT: Kernel testing complete! 4 successful out of 4 builds.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 failed to build. Retrying with make clean.
+ALERT: Kernel version 6.1.1 failed to build. Continuing
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 failed to build. Retrying with make clean.
+ALERT: Kernel version 5.12.19 failed to build. Continuing
+ALERT: [01m ### STARTING TEST: kernel 5.10.161 ###[00m
+ALERT: Kernel version 5.10.161 failed to build. Retrying with make clean.
+ALERT: Kernel version 5.10.161 failed to build. Continuing
+ALERT: [01m ### STARTING TEST: kernel 4.9.336 ###[00m
+ALERT: Kernel version 4.9.336 failed to build. Retrying with make clean.
+ALERT: Kernel version 4.9.336 failed to build. Continuing
+ALERT: Kernel testing complete! 0 successful out of 4 builds.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 failed to build. Retrying with make clean.
+ALERT: Kernel version 6.1.1 failed to build. Continuing
+ALERT: [01m ### STARTING TEST: kernel 5.12.19 ###[00m
+ALERT: Kernel version 5.12.19 built successfully.
+ALERT: Not testing because buildonly enabled!
+ALERT: [01m ### STARTING TEST: kernel 5.10.161 ###[00m
+ALERT: Kernel version 5.10.161 built successfully.
+ALERT: Not testing because buildonly enabled!
+ALERT: [01m ### STARTING TEST: kernel 4.9.336 ###[00m
+ALERT: Kernel version 4.9.336 built successfully.
+ALERT: Not testing because buildonly enabled!
+ALERT: Kernel testing complete! 3 successful out of 4 builds.

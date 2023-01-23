@@ -12,6 +12,7 @@ from test import MAX_PKT_SZ
 import csv
 
 IDEAL_LATENCY = 0.005
+THROUGHPUT_BENCH_BW = 1000
 IPBENCH_PKTSIZES = [
     1448, 1217, 1120, 1056, 1024, 1000, 861, 800, 724, 680, 608, 590,
     580, 512, 430, 362, 304, 256, 215, 181, 152, 128, 90, 76, 64
@@ -116,158 +117,112 @@ def ipbench_csv(path):
 def finalise_iperf3(out_dir, machine_name):
     """
     Generate iperf3 results for all available result files
-    """
-    
-    results = {}
-    
-    # Find all tests
-    for kernel in os.listdir(f"{out_dir}/{machine_name}"):
-        # sub = []
-        # Open each test
-        try:
-            _ = results[kernel]
-        except KeyError:
-            results[kernel] = { "mt" : {"UDP" : {}, "TCP" : {}}, "st" : {"UDP" : {}, "TCP" : {}},}
-        files = []
-        for f in os.listdir(f"{out_dir}/{machine_name}/{kernel}"):
-            if "iperf3" in str(f):
-                files.append(f)
-
-        files.sort(key=lambda filename: iperf3_filesort(filename))
-        for file in files:
-            # Skip kernel, rootfs, etc.
-            if not ".test" in file or not "iperf3" in file:
-                print(f"skipped {file}")
-                continue
-            with open(f"{out_dir}/{machine_name}/{kernel}/{file}") as f:
-                try:
-                    result = json.load(f)
-                except:
-                    print(f"Failed to open {machine_name} - {kernel} {file}")
-                    continue
-
-                if len(result["intervals"]) == 0:
-                    continue
-                
-                # add in extra details
-                # packet size
-                packet_size = file.split("-")[4].split(".")[0] # cursed line but it works
-                result["packet_sz"] = packet_size
-                
-                # target bandwidth
-                bw = file.split("-")[3]
-
-                # protocol
-                protocol = result["start"]["test_start"]["protocol"]
-                
-                # for single threaded, don't do anything special
-                if file.split("-")[1] == "st":
-                    try:
-                        results[kernel]["st"][protocol][bw].append(result)
-                    except KeyError:
-                        # print(f"Added bw {bw}")
-                        results[kernel]["st"][protocol][bw] = []
-                        results[kernel]["st"][protocol][bw].append(result)
-                # otherwise, for multithreaded we need to break this up further
-                # yes i know this json stuff is a nightmare, but this saves having to reformat every single entry
-                else:
-                    # check this mt has an entry
-                    try:
-                        _ = results[kernel]["mt"][protocol][file.split("-")[1]]
-                    except KeyError:
-                        
-                        results[kernel]["mt"][protocol][file.split("-")[1]] = {}
-                    try:
-                        results[kernel]["mt"][protocol][file.split("-")[1]][bw].append(result)
-                    except KeyError:
-                        # try:
-                        results[kernel]["mt"][protocol][file.split("-")[1]][bw] = []
-                        # except KeyError:
-                        results[kernel]["mt"][protocol][file.split("-")[1]][bw].append(result)
-                            
-    r = iperf_results(results, machine_name)
+    """               
+    r = iperf_results(out_dir, machine_name)
     iperf3_st_graphs_throughput(r, True)
     iperf3_st_graphs_throughput(r, False)
     iperf3_st_graphs_latency(r)
-    iperf3_st_graphs_cpu(r)
-    iperf3_mt_graphs_throughput(r)
-    iperf3_mt_graphs_cpu(r)
-    iperf3_mt_graphs_latency(r)
-    iperf3_st_graph_appliedactual(r)
-    iperf3_st_graphs_sendrecv_throughput(r)
+    # iperf3_st_graphs_cpu(r)
+    # iperf3_mt_graphs_throughput(r)
+    # iperf3_mt_graphs_cpu(r)
+    # iperf3_mt_graphs_latency(r)
+    # iperf3_st_graph_appliedactual(r)
+    # iperf3_st_graphs_sendrecv_throughput(r)
     
 
 def iperf3_st_graphs_throughput(results, reverse):
     """
     Generates plots of throughput against packet size for UDP/TCP results
     """
-    throughput_type = "throughput"
+    throughput_type = "throughput_send"
     if reverse:
-        throughput_type = "throughput_reverse"
-    for protocol in ["UDP", "TCP"]:
-        for bw in ["1000m"]:
-            plt.clf()
-            y_range = []
-            for kernel in results.kernels:
-                print(f"Graphing {protocol}-{bw}-{kernel}")
-                sub = {}
-                if protocol == "UDP":
-                    sub = results.get_result_st_udp(bw, kernel)
-                else:
-                    sub = results.get_result_st_tcp(bw, kernel)
-                if len(sub[throughput_type]) == 0:
-                    continue
-                
-                for t in sub[throughput_type]:
-                    if t not in y_range:
-                        y_range.append(t)
+        throughput_type = "throughput_receive"
 
-                
-                plt.xlabel("Packet sizes (bytes)")
-                plt.ylabel("Throughput (MBit/s)")
-                #pkt_ticks(packet_sizes)
-                # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-                plt.title(f"{results.machinename} - ST {throughput_type} performance - {protocol} targeting {bw[:len(bw)-1]}Mb/s")
-                plt.plot(sub["packets"], sub[throughput_type], label=f"{kernel}")
-            plt.yticks(ticks(y_range, 10))
-            ax = plt.gca()
-            ax.yaxis.set_major_formatter('{x:9<5.1f}')
-            ax.legend()
-            plt.savefig(f"../results/{results.machinename}-st-{bw}-{protocol}-{throughput_type}.png")
+
+    # TCP
+    plt.clf()
+    y_largest_range = []
+    for kernel in results.kernels:
+        test = results.get_st_test_pktsize_tcp(kernel)
+        if test == None:
+            continue
+        
+
+        print(test)
+        # print(test[0])
+
+        # if y_largest_range == [] or max(y_largest_range) < max(test[throughput_type]):
+        for element in test[throughput_type]:
+            y_largest_range.append(element)
+
+        plt.xlabel("Packet sizes (bytes)")
+        plt.ylabel("Throughput (MBit/s)")
+        #pkt_ticks(packet_sizes)
+        # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+        plt.plot(test["pkt_szs"], test[throughput_type], label=f"{kernel}")
+    plt.title(f"{results.machinename} - ST Throughtput - TCP targeting 1000Mb/s")
+    plt.yticks(ticks(y_largest_range, 10))
+    ax = plt.gca()
+    ax.yaxis.set_major_formatter('{x:9<5.1f}')
+    ax.legend()
+    s = f"../results/{results.machinename}-st-1000m-TCP-{throughput_type}.png"
+    plt.savefig(s)  
+    print(f"Saved {s}")
+
+    # UDP
+    plt.clf()
+    y_largest_range = []
+    for kernel in results.kernels:
+        test = results.get_st_test_pktsize_udp(kernel)
+        if test == None:
+            continue
+        
+
+        print(test)
+        # print(test[0])
+
+        # if y_largest_range == [] or max(y_largest_range) < max(test[throughput_type]):
+        for element in test[throughput_type]:
+            y_largest_range.append(element)
+
+        plt.xlabel("Packet sizes (bytes)")
+        plt.ylabel("Throughput (MBit/s)")
+        #pkt_ticks(packet_sizes)
+        # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+        plt.plot(test["pkt_szs"], test[throughput_type], label=f"{kernel}")
+    plt.title(f"{results.machinename} - ST Throughtput - UDP targeting 1000Mb/s")
+    plt.yticks(ticks(y_largest_range, 10))
+    ax = plt.gca()
+    ax.yaxis.set_major_formatter('{x:9<5.1f}')
+    ax.legend()
+    s = f"../results/{results.machinename}-st-1000m-UDP-{throughput_type}.png"
+    plt.savefig(s)  
+    print(f"Saved {s}")  
+
 
 def iperf3_st_graphs_latency(results):
     """
     Generates plots of latency against packet size for TCP results
     """
-    for protocol in ["TCP"]:
-        for bw in ["1000m"]:
+    for kernel in results.kernels:
+        for test in results.get_st_test_pktsize_tcp(kernel):
             plt.clf()
             y_largest_range = []
-            for kernel in results.kernels:
-                # print(f"Graphing {protocol}-{bw}-{kernel}")
-                sub = {}
-                if protocol == "UDP":
-                    packet_sizes = results.sizes_udp
-                else:
-                    sub = results.get_result_st_tcp(bw, kernel)
-                if len(sub["latency"]) == 0:
-                    continue
                 
-                if y_largest_range == [] or max(y_largest_range) < max(sub["latency"]):
-                    y_largest_range = sub["latency"]
+            if y_largest_range == [] or max(y_largest_range) < max(test[0]["rtt"]):
+                y_largest_range = test[0]["rtt"]
 
-                plt.xlabel("Packet sizes (bytes)")
-                # tt = unitise_plot(sub["latency"], "Latency")
-                plt.ylabel("Latency (us)")
-                #pkt_ticks(packet_sizes)
-                # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-                plt.title(f"{results.machinename} - ST Latency - {protocol} targeting {bw}b/s")
-                plt.plot(sub["packets"], sub["latency"], label=f"{kernel}")
-            plt.yticks(ticks(y_largest_range, 10))
-            ax = plt.gca()
-            ax.yaxis.set_major_formatter('{x:9<5.1f}')
-            ax.legend()
-            plt.savefig(f"../results/{results.machinename}-st-{bw}-{protocol}-latency.png")               
+            plt.xlabel("Packet sizes (bytes)")
+            plt.ylabel("Latency (us)")
+            #pkt_ticks(packet_sizes)
+            # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+            plt.title(f"{results.machinename} - ST Latency - TCP targeting 1000Mb/s")
+            plt.plot(test[1], test[0]["rtt"], label=f"{kernel}")
+        plt.yticks(ticks(y_largest_range, 10))
+        ax = plt.gca()
+        ax.yaxis.set_major_formatter('{x:9<5.1f}')
+        ax.legend()
+        plt.savefig(f"../results/{results.machinename}-st-1000m-latency.png")               
 
 def iperf3_st_graphs_cpu(results):
     """
@@ -541,9 +496,11 @@ class iperf_results():
 
         Dict formats for st/mt tests:
         {
-            bandwidth : [tests sorted by packet size],
-            bandwidth1 : ...
-            ...
+            kernel1 : {
+                bandwidth : [tests sorted by packet size],
+                bandwidth1 : ...
+                ...
+            } ... 
 
         }
 
@@ -559,90 +516,256 @@ class iperf_results():
             "raw" : raw json of test
         }
         """
-        
         self.udp_st_tests = {}
         self.udp_mt_tests = []
         self.tcp_st_tests = {}
         self.tcp_mt_tests = []
-
+        self.kernels = []
+        self.machinename = machine_name
         # Find all tests
         for kernel in os.listdir(f"{out_dir}/{machine_name}"):
-            for test in os.listdir(f"{out_dir}/{machine_name}/{kernel}"):
-                if not ".test" in test or not "iperf3" in test:
+            self.kernels.append(kernel)
+            for iperf_out in os.listdir(f"{out_dir}/{machine_name}/{kernel}"):
+                if not ".test" in iperf_out or not "iperf3" in iperf_out:
                     continue
-                with open(f"{out_dir}/{machine_name}/{kernel}/{test}") as f:
+                with open(f"{out_dir}/{machine_name}/{kernel}/{iperf_out}") as f:
                     try:
                         result = json.load(f)
                     except:
-                        print(f"Failed to open {machine_name} - {kernel} {test}")
+                        print(f"Failed to open {machine_name} - {kernel} {iperf_out}")
                         continue
 
                     if len(result["intervals"]) == 0:
-                        print(f"Test {machine_name} - {kernel} {test} failed to run. Skipping.")
+                        print(f"Test {machine_name} - {kernel} {iperf_out} failed to run. Skipping.")
                         continue
                     
                     # extract bandwidth
-                    bw = test.split("-")[3].split("m")[0]
-
-                    test = {
-                        "packet_sz" : test.split("-")[3],
-                        "rtt" : result["end"]["streams"][0]["sender"]["mean_rtt"],
-                        "cpu" : result["end"]["cpu_utilization_percent"]["host_total"],
-                        "throughput_send" : float(result["end"]["sum_sent"]["bits_per_second"] / (10**6)),
-                        "throughput_receive" : float(result["end"]["sum_sent_bidir_reverse"]["bits_per_second"] / (10**6)),
-                        "raw" : result
-                    }
-
-                    # check for mt/st
-                    if test.split("-")[1] == "st":
-                        # protocol
-                        if test.split("-")[2] == "udp":
-                            self.udp_st_tests = self.append_dict(self.udp_st_tests, test, bw, -1)
-                        else:
-                            self.tcp_st_tests = self.append_dict(self.tcp_st_tests, test, bw, -1)
+                    bw = iperf_out.split("-")[3].split("m")[0]
+                    protocol = iperf_out.split("-")[2]
+                    test = {}
+                    if protocol == "TCP":
+                        test = {
+                            "packet_sz" : iperf_out.split("-")[4].split(".")[0],
+                            "rtt" : result["end"]["streams"][0]["sender"]["mean_rtt"],
+                            "cpu" : result["end"]["cpu_utilization_percent"]["host_total"],
+                            "throughput_send" : float(result["end"]["sum_sent"]["bits_per_second"] / (10**6)),
+                            "throughput_receive" : float(result["end"]["sum_sent_bidir_reverse"]["bits_per_second"] / (10**6)),
+                            # "raw" : result
+                        }
                     else:
-                        mt_num = int(test.split("-")[1].split("mt")[1]) - 1
-                        if test.split("-")[2] == "udp":
-                            self.udp_mt_tests = self.append_dict(self.udp_mt_tests, test, bw, mt_num)
+                        test = {
+                            "packet_sz" : iperf_out.split("-")[4].split(".")[0],
+                            "cpu" : result["end"]["cpu_utilization_percent"]["host_total"],
+                            "throughput_send" : float(result["end"]["sum_sent"]["bits_per_second"] / (10**6)),
+                            "throughput_receive" : float(result["end"]["sum_sent_bidir_reverse"]["bits_per_second"] / (10**6)),
+                            # "raw" : result
+                        }
+                    # check for mt/st
+                    if iperf_out.split("-")[1] == "st":
+                        # protocol
+                        if protocol == "udp":
+                            self.udp_st_tests = self.append_dict(self.udp_st_tests, test, bw, -1, kernel)
                         else:
-                            self.tcp_mt_tests = self.append_dict(self.tcp_mt_tests, test, bw, mt_num)
+                            self.tcp_st_tests = self.append_dict(self.tcp_st_tests, test, bw, -1, kernel)
+                    else:
+                        mt_num = int(iperf_out.split("-")[1].split("mt")[1]) - 1
+                        if protocol == "udp":
+                            self.udp_mt_tests = self.append_dict(self.udp_mt_tests, test, bw, mt_num, kernel)
+                        else:
+                            self.tcp_mt_tests = self.append_dict(self.tcp_mt_tests, test, bw, mt_num, kernel)
     
     
-    def append_dict(self, target, test, bw, mt):
+    def get_st_test_pktsize_udp(self, kernel):
+        """
+        Return tests of packet size vs. achieved throughput for UDP. Sorted by packet size
+        """
+        return self.get_tests_pktsz(kernel, self.udp_st_tests)
+
+    def get_st_test_pktsize_tcp(self, kernel):
+        """
+        Return tests of packet size vs. achieved throughput for TCP. Sorted by packet size
+        """
+        return self.get_tests_pktsz(kernel, self.tcp_st_tests)
+    
+    def get_mt_test_pktsize_udp(self, kernel):
+        """
+        Return tests of packet size vs. achieved throughput for UDP. Sorted by packet size
+        """
+        return self.get_mt_test_pktsize(kernel, self.udp_mt_tests)
+    
+    def get_mt_test_pktsize_tcp(self, kernel):
+        """
+        Return tests of packet size vs. achieved throughput for TCP. Sorted by packet size
+        """
+        return self.get_mt_test_pktsize(kernel, self.tcp_mt_tests)
+
+    def get_mt_tests_pktsize(self, kernel, in_list):
+        """
+        INTERNAL
+        Return tests of packet size vs. achieved throughput for. Sorted by packet size
+        
+        Let this function show my committedness to avoiding degenerate data.
+        """
+
+        results = []
+        out = []
+        safe = ([], [])
+        for mt in in_list:
+            r = (self.get_tests_pktsz(kernel, in_list[mt]))
+            results.append(r)
+            # Find longest entry - we treat this one as the one with the maximal set of packet sizes
+            # in case others have missing tests.
+            if len(r[0]) > len(safe[0]):
+                safe = r
+
+        # Sanitise data
+        rr = results.copy()
+        for mt in rr:
+            for test in mt:
+                # Check if this test has the wrong number of tests
+                l = test["test"]
+                if len(l) != len(safe["test"]):
+                    new = safe["test"].copy()
+                    # If so, create dummy list with extra elements to pad. First find bad elements by
+                    # checking packet sizes
+                    bad_indices = []
+                    for pkt_sz in safe["pkts"]:
+                        if pkt_sz not in test["pkts"]:
+                            bad_indices.append(safe["pkts"].index(pkt_sz))
+                    
+                    # Populate new lists
+                    c = 0
+                    for i in range(new):
+                        if i in bad_indices:
+                            new[i] = -1
+                        else:
+                            new[i] = l[c]
+                            c += 1
+                    l = new
+                    results[rr.index(mt)] = l
+        # Average data
+        for mt in results:
+            out = self.mt_combine(mt, out)
+
+        return (out, safe[1])
+
+
+    def mt_combine(list1, list2):
+        """
+        Average/sum each element of two test sets. An element with value -1 is ignored.
+        """
+        if list1 == []:
+            return list2
+        elif list2 == []:
+            return list1
+
+        if len(list1) != len(list2):
+            print("Failed to piecewise mean lists - wrong length!")
+            raise ValueError
+        
+        out = []
+        for i in range(len(list1)):
+            if list1[i] != -1 and list2[i] != -1:
+                out.append(int((list1[i] + list2[i])/2))
+            else:
+                out.append(max(list1[i], list2[i]))
+        return out
+
+    def get_tests_pktsz(self, kernel, in_list):
+        """
+        INTERNAL
+        Get tests given internal list. This function is wrapped around by the targeted ones
+        """
+        out = {
+            "pkt_szs" : [],
+            "throughput_send" : [],
+            "cpu" : [],
+            "throughput_receive" : [],   
+        }
+        bw = '0'
+        try:
+            for bww in in_list[kernel]:
+                """
+                There should only be one bw with more than one test
+                """
+                if len(bww) > 1:
+                    bw = bww
+                    break
+        except KeyError:
+            print(f"WARNING: no tests for kernel {kernel}")
+            return None
+        if bw == '0':
+            print(f"WARNING: didn't find test batch with appropriate length for pktsize for\
+                kernel {kernel}")
+        
+        tests = []
+
+        # Collect tests
+        for test in in_list[kernel][bw]:
+            tests.append(test)
+
+        # Sort
+        tests.sort(key= lambda t: int(t["packet_sz"]))
+
+        # Extract packet sizes and return separately
+        pkt_szs = []
+        for t in tests:
+            out["pkt_szs"].append(t["packet_sz"])
+            out["throughput_send"].append(t["throughput_send"])
+            out["throughput_receive"].append(t["throughput_receive"])
+            out["cpu"].append(t["cpu"])
+            try:
+                out["rtt"].append(t["rtt"])
+            except KeyError:
+                continue
+            
+        
+        return out
+
+    def append_dict(self, target, test, bw, mt, kernel):
         """
         Append a test to an internal dict. Returns the modified dict
         """
 
         # ST case
         if mt == -1:
+            # Check that target kernel exists
+            try:
+                _ = target[kernel]
+            except KeyError:
+                target[kernel] = {}
+            
             # Check that target bw exists
             try:
-                _ = target[bw]
+                _ = target[kernel][bw]
             except KeyError:
-                target[bw] = []
+                target[kernel][bw] = []
 
             # Insert
-            target[bw].append(test)
+            target[kernel][bw].append(test)
         
         # MT case
         else:
             # Check if we have at least n entries in the MT array
-            while len(target) < mt:
+            while len(target) <= mt:
                 target.append({})
+            
+            # Check that target kernel exists
+            try:
+                _ = target[mt][kernel]
+            except KeyError:
+                target[mt][kernel] = {}
             
             # Check that target bw exists
             try:
-                _ = target[mt][bw]
+                _ = target[mt][kernel][bw]
             except KeyError:
-                target[mt][bw] = []
+                target[mt][kernel][bw] = []
 
             # Insert
-            target[mt][bw].append(test)
+            target[mt][kernel][bw].append(test)
 
         return target
-
-
-
 
 
 # For testingg
