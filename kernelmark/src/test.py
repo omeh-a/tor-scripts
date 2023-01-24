@@ -46,12 +46,12 @@ def test(machine, kernel_ver, local, test_args):
         # Child process
         # Start by waiting until the system is booted by trying to send
         # a UDP packet to port 1345 until it succeeds.
-        buff_sz = 1000
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind((str(socket.INADDR_ANY), 1345))
-        sock.settimeout(10.0)
         if __name__ != "__main__":
             print("Waiting for system to boot...")
+            buff_sz = 1000
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.bind((str(socket.INADDR_ANY), 1345))
+            sock.settimeout(10.0)
             retries = 0
 
             while True:
@@ -94,7 +94,6 @@ def test(machine, kernel_ver, local, test_args):
 
         # Run for each direction
         for d in dirs:
-            print(f"Beginning iperf3 {d}")
             bidir = (d == "bidir")
             if "iperf-bw" in test_args:
                 for bw in bws:
@@ -124,18 +123,13 @@ def test(machine, kernel_ver, local, test_args):
                     # UDP multicore
                     iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, True, machine.logical_cpus, bidir)
 
-        if "ipbench" in test_args:
-            print("Starting ipbench...")
+        if "ipbench" in test_args:    
             # Invoke ipbench tests
             os.system(f"../../runbench/runbenchnocpu > {kernel_ver}-{machine.name}")
             os.system(f"../../runbench/stopbench")
             time.sleep(5)
             print(f"Done testing.")
             exit(0)
-
-        # Terminate connection via testerwait
-        sock.sendto(b"Ostritch", (machine.ip, 1345))
-    
     return pid
 
 
@@ -190,7 +184,7 @@ def iperf3_test_multi(machine, kernel_ver, pkt_size, bw, udp, num_cpus, bidir):
         iperf_common += " --bidir"
     
     # spin up testers 2..8
-    for i in range(1, num_cpus):
+    for i in range(1, num_cpus + 1):
         os.system(f"on -h vb0{str(i+1)}.keg.cse.unsw.edu.au -c 'rm -f /tmp/mtlog && iperf3 {iperf_common} -p {str(5000 + i)} --logfile /tmp/mtlog' &")
     
     # tester 1

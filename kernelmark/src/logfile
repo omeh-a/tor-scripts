@@ -1823,3 +1823,96 @@ ALERT: SIGINT received. Exiting
 ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
 ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
 ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: SIGINT received. Exiting
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.
+ALERT: kernelmark started. target: imx8mm kernels: ../kernels_essential.json.
+ALERT: [01m ### STARTING TEST: kernel 6.1.1 ###[00m
+ALERT: Kernel version 6.1.1 built successfully.

@@ -542,6 +542,7 @@ class iperf_results():
         Tests:
         {
             "packet_sz" : packet size,
+            "bw" : target bandwidth,
             "rtt" : mean rtt,
             "cpu" : target cpu utilisation (mean)
             "throughput_send": mean throughput over all runs, sender. If monodirectional test this becomes only field for tp.
@@ -590,6 +591,7 @@ class iperf_results():
                     if protocol == "tcp":
                         test = {
                             "packet_sz" : iperf_out.split("-")[4].split(".")[0],
+                            "bw" : bw,
                             "rtt" : result["end"]["streams"][0]["sender"]["mean_rtt"],
                             "cpu" : result["end"]["cpu_utilization_percent"]["host_total"],
                             "throughput_send" : throughput_send,
@@ -600,6 +602,7 @@ class iperf_results():
                     else:
                         test = {
                             "packet_sz" : iperf_out.split("-")[4].split(".")[0],
+                            "bw" : bw,
                             "cpu" : result["end"]["cpu_utilization_percent"]["host_total"],
                             "throughput_send" : throughput_send,
                             "throughput_receive" : throughput_receive,
@@ -620,7 +623,8 @@ class iperf_results():
                         else:
                             self.tcp_mt_tests = self.append_dict(self.tcp_mt_tests, test, bw, mt_num, kernel)
     
-    
+    # x vs packet size tests
+
     def get_st_test_pktsize_udp(self, kernel):
         """
         Return tests of packet size vs. achieved throughput for UDP. Sorted by packet size
@@ -770,6 +774,136 @@ class iperf_results():
             
         
         return out
+
+    # x vs bandwidth tests
+
+    def get_tests_bw(self, kernel, in_list):
+        """
+        INTERNAL
+        Get tests given internal list. This function is wrapped around by the targeted ones
+        """
+        out = {
+            "bws" : [],
+            "throughput_send" : [],
+            "cpu" : [],
+            "throughput_receive" : [],   
+            "rtt" : []
+        }
+
+        num_bws = 0
+        try:
+            for bww in in_list[kernel]:
+                num_bws += 1
+
+        except KeyError:
+            print(f"WARNING: no tests for kernel {kernel}")
+            return None
+        
+        if num_bws < 2:
+            print(f"WARNING: not enough tests bw graphs for kernel {kernel}")
+            return None
+
+        tests = []
+        # Collect tests
+        for bw in in_list[kernel]:
+            for test in in_list[kernel][bw]:
+                if test["packet_sz"] == MAX_PKT_SZ:
+                    tests.append(test)
+
+        # Sort
+        tests.sort(key= lambda t: int(t["bw"]))
+
+        # Extract packet sizes and return separately
+        pkt_szs = []
+        for t in tests:
+            out["bws"].append(t["bw"])
+            out["throughput_send"].append(t["throughput_send"])
+            if t["bidir"]:
+                out["throughput_receive"].append(t["throughput_receive"])
+
+            out["cpu"].append(t["cpu"])
+            try:
+                out["rtt"].append(t["rtt"])
+            except KeyError:
+                continue
+
+        return out
+    
+    def get_mt_tests_bw(self, kernel, in_list):
+        """
+        INTERNAL
+        Return tests of bandwidth vs. achieved throughput for. Sorted by bandwidth
+        
+        Let this function show my committedness to avoiding degenerate data.
+        """
+
+        results = []
+        out = []
+        safe = ([], [])
+        for mt in in_list:
+            r = (self.get_tests_bw(kernel, in_list[mt]))
+            results.append(r)
+            # Find longest entry - we treat this one as the one with the maximal set of packet sizes
+            # in case others have missing tests.
+            if len(r[0]) > len(safe[0]):
+                safe = r
+
+        # Sanitise data
+        rr = results.copy()
+        for mt in rr:
+            for test in mt:
+                # Check if this test has the wrong number of tests
+                l = test["test"]
+                if len(l) != len(safe["test"]):
+                    new = safe["test"].copy()
+                    # If so, create dummy list with extra elements to pad. First find bad elements by
+                    # checking packet sizes
+                    bad_indices = []
+                    for bw in safe["bw"]:
+                        if bw not in test["bw"]:
+                            bad_indices.append(safe["bw"].index(bw))
+                    
+                    # Populate new lists
+                    c = 0
+                    for i in range(new):
+                        if i in bad_indices:
+                            new[i] = -1
+                        else:
+                            new[i] = l[c]
+                            c += 1
+                    l = new
+                    results[rr.index(mt)] = l
+        # Average data
+        for mt in results:
+            out = self.mt_combine(mt, out)
+
+        return (out, safe[1])
+
+    def get_st_test_bw_udp(self, kernel):
+        """
+        Return tests of bandwidth vs. achieved throughput for UDP. Sorted by bandwidth
+        """
+        return self.get_tests_bw(kernel, self.udp_st_tests)
+
+    def get_st_test_bw_tcp(self, kernel):
+        """
+        Return tests of bandwidth vs. achieved throughput for TCP. Sorted by bandwidth
+        """
+        return self.get_tests_bw(kernel, self.tcp_st_tests)
+    
+    def get_mt_test_bw_udp(self, kernel):
+        """
+        Return tests of bandwidth vs. achieved throughput for UDP. Sorted by bandwidth
+        """
+        return self.get_mt_test_bw(kernel, self.udp_mt_tests)
+    
+    def get_mt_test_bw_tcp(self, kernel):
+        """
+        Return tests of bandwidth vs. achieved throughput for TCP. Sorted by bandwidth
+        """
+        return self.get_mt_test_bw(kernel, self.tcp_mt_tests)
+
+
 
     def append_dict(self, target, test, bw, mt, kernel):
         """
