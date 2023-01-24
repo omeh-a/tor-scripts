@@ -122,7 +122,7 @@ def finalise_iperf3(out_dir, machine_name):
     iperf3_st_graphs_throughput(r, True)
     iperf3_st_graphs_throughput(r, False)
     iperf3_st_graphs_latency(r)
-    # iperf3_st_graphs_cpu(r)
+    iperf3_st_graphs_cpu(r)
     # iperf3_mt_graphs_throughput(r)
     # iperf3_mt_graphs_cpu(r)
     # iperf3_mt_graphs_latency(r)
@@ -190,7 +190,7 @@ def iperf3_st_graphs_throughput(results, reverse):
         #pkt_ticks(packet_sizes)
         # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
         plt.plot(test["pkt_szs"], test[throughput_type], label=f"{kernel}")
-    plt.title(f"{results.machinename} - ST Throughtput - UDP targeting 1000Mb/s")
+    plt.title(f"{results.machinename} - ST {throughput_type} - UDP targeting 1000Mb/s")
     plt.yticks(ticks(y_largest_range, 10))
     ax = plt.gca()
     ax.yaxis.set_major_formatter('{x:9<5.1f}')
@@ -237,36 +237,60 @@ def iperf3_st_graphs_cpu(results):
     """
     Generates plots of cpu against packet size for UDP/TCP results
     """
-    for protocol in ["TCP", "UDP"]:
-        for bw in ["1000m"]:
-            plt.clf()
-            y_range = []
-            for kernel in results.kernels:
-                # print(f"Graphing {protocol}-{bw}-{kernel}")
-                sub = {}
-                if protocol == "UDP":
-                    sub = results.get_result_st_udp(bw, kernel)
-                else:
-                    sub = results.get_result_st_tcp(bw, kernel)
-                if len(sub["cpu"]) == 0:
-                    continue
-                
-                for cpu in sub["cpu"]:
-                    if cpu not in y_range:
-                        y_range.append(cpu)
+    # TCP
+    plt.clf()
+    y_largest_range = []
+    for kernel in results.kernels:
+        test = results.get_st_test_pktsize_tcp(kernel)
+        if test == None:
+            continue
 
-                plt.xlabel("Packet sizes (bytes)")
-                # tt = unitise_plot(sub["latency"], "Latency")
-                plt.ylabel("CPU Utilisation (%)")
-                #pkt_ticks(packet_sizes)
-                # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-                plt.title(f"{results.machinename} - ST CPU Utilisation - {protocol} targeting {bw[:len(bw)-1]}Mb/s")
-                plt.plot(sub["packets"], sub["cpu"], label=f"{kernel}")
-            plt.yticks(ticks(y_range, 10))
-            ax = plt.gca()
-            ax.yaxis.set_major_formatter('{x:9<5.1f}')
-            ax.legend()
-            plt.savefig(f"../results/{results.machinename}-st-{bw}-{protocol}-cpu.png")               
+        for element in test["cpu"]:
+            y_largest_range.append(element)
+
+        plt.xlabel("Packet sizes (bytes)")
+        plt.ylabel("CPU utilisation (%)")
+        #pkt_ticks(packet_sizes)
+        # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+        plt.plot(test["pkt_szs"], test["cpu"], label=f"{kernel}")
+    plt.title(f"{results.machinename} - ST CPU - TCP targeting 1000Mb/s")
+    plt.yticks(ticks(y_largest_range, 10))
+    ax = plt.gca()
+    ax.yaxis.set_major_formatter('{x:9<5.1f}')
+    ax.legend()
+    s = f"../results/{results.machinename}-st-1000m-TCP-cpu.png"
+    plt.savefig(s)  
+    print(f"Saved {s}")
+
+    # UDP
+    plt.clf()
+    y_largest_range = []
+    for kernel in results.kernels:
+        test = results.get_st_test_pktsize_udp(kernel)
+        if test == None:
+            continue
+        
+
+        print(test)
+        # print(test[0])
+
+        # if y_largest_range == [] or max(y_largest_range) < max(test[throughput_type]):
+        for element in test["cpu"]:
+            y_largest_range.append(element)
+
+        plt.xlabel("Packet sizes (bytes)")
+        plt.ylabel("CPU utilisation (%)")
+        #pkt_ticks(packet_sizes)
+        # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+        plt.plot(test["pkt_szs"], test["cpu"], label=f"{kernel}")
+    plt.title(f"{results.machinename} - ST Throughtput - UDP targeting 1000Mb/s")
+    plt.yticks(ticks(y_largest_range, 10))
+    ax = plt.gca()
+    ax.yaxis.set_major_formatter('{x:9<5.1f}')
+    ax.legend()
+    s = f"../results/{results.machinename}-st-1000m-UDP-CPU.png"
+    plt.savefig(s)  
+    print(f"Saved {s}")           
 
 def iperf3_st_graphs_sentrecv_thru(results):
     """
@@ -523,6 +547,7 @@ class iperf_results():
             "throughput_send": mean throughput over all runs, sender. If monodirectional test this becomes only field for tp.
             "throughput_receive": mean throughput over all runs, receiver.
             "raw" : raw json of test
+            "bidir" : true if this test is bidirectional
         }
         """
         self.udp_st_tests = {}
@@ -550,24 +575,36 @@ class iperf_results():
                     
                     # extract bandwidth
                     bw = iperf_out.split("-")[3].split("m")[0]
-                    protocol = iperf_out.split("-")[2]
+                    protocol = iperf_out.split("-")[2].split(".")[0]
                     test = {}
+
+                    # throughput variables -> extracted here to minimise copy pasta due to bidir handling
+                    throughput_send = 0.0
+                    throughput_receive = 0.0
+                    if "bidir" in iperf_out.split("-")[2]:
+                        throughput_send = float(result["end"]["sum_sent"]["bits_per_second"] / (10**6)),
+                        throughput_receive = float(result["end"]["sum_sent_bidir_reverse"]["bits_per_second"] / (10**6)),
+                    else:
+                        throughput_send = float(result["end"]["sum_sent"]["bits_per_second"] / (10**6)),
+
                     if protocol == "tcp":
                         test = {
                             "packet_sz" : iperf_out.split("-")[4].split(".")[0],
                             "rtt" : result["end"]["streams"][0]["sender"]["mean_rtt"],
                             "cpu" : result["end"]["cpu_utilization_percent"]["host_total"],
-                            "throughput_send" : float(result["end"]["sum_sent"]["bits_per_second"] / (10**6)),
-                            "throughput_receive" : float(result["end"]["sum_sent_bidir_reverse"]["bits_per_second"] / (10**6)),
-                            # "raw" : result
+                            "throughput_send" : throughput_send,
+                            "throughput_receive" : throughput_receive,
+                            # "raw" : result,
+                            "bidir" : ("bidir" in iperf_out.split("-")[2])
                         }
                     else:
                         test = {
                             "packet_sz" : iperf_out.split("-")[4].split(".")[0],
                             "cpu" : result["end"]["cpu_utilization_percent"]["host_total"],
-                            "throughput_send" : float(result["end"]["sum_sent"]["bits_per_second"] / (10**6)),
-                            "throughput_receive" : float(result["end"]["sum_sent_bidir_reverse"]["bits_per_second"] / (10**6)),
-                            # "raw" : result
+                            "throughput_send" : throughput_send,
+                            "throughput_receive" : throughput_receive,
+                            # "raw" : result,
+                            "bidir" : ("bidir" in iperf_out.split("-")[2])
                         }
                     # check for mt/st
                     if iperf_out.split("-")[1] == "st":
@@ -722,7 +759,9 @@ class iperf_results():
         for t in tests:
             out["pkt_szs"].append(t["packet_sz"])
             out["throughput_send"].append(t["throughput_send"])
-            out["throughput_receive"].append(t["throughput_receive"])
+            if t["bidir"]:
+                out["throughput_receive"].append(t["throughput_receive"])
+
             out["cpu"].append(t["cpu"])
             try:
                 out["rtt"].append(t["rtt"])

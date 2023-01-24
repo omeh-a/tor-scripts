@@ -18,13 +18,14 @@ TARGET_BW = 1000  # in megabits / sec
 IPERF_PORT1 = 5000
 
 pkt_sizes = [
-        # 1448,
+    # 1448,
     1024, 512, 256, 128, 90
 ]
 
 MAX_PKT_SZ = 1448
 
 bws = [
+    1000,
     750,
     500,
     250,
@@ -35,7 +36,7 @@ bws = [
 MAX_CPUS = 8
 
 
-def test(machine, kernel_ver, local):
+def test(machine, kernel_ver, local, test_args):
     if __name__ != "__main__":
         pid = os.fork()
     else:
@@ -45,12 +46,12 @@ def test(machine, kernel_ver, local):
         # Child process
         # Start by waiting until the system is booted by trying to send
         # a UDP packet to port 1345 until it succeeds.
+        buff_sz = 1000
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind((str(socket.INADDR_ANY), 1345))
+        sock.settimeout(10.0)
         if __name__ != "__main__":
             print("Waiting for system to boot...")
-            buff_sz = 1000
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.bind((str(socket.INADDR_ANY), 1345))
-            sock.settimeout(10.0)
             retries = 0
 
             while True:
@@ -85,55 +86,71 @@ def test(machine, kernel_ver, local):
         # ipbench is cooked, so skip that part and just do iperf3 for now
 
         # Invoke iperf3
-        for bw in bws:
-            # TCP 100% bw
-            iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, False, local)
+        dirs = []
+        if "bidir" in test_args:
+            dirs.append("bidir")
+        if "unidir" in test_args:
+            dirs.append("unidir")
 
-            # UDP 100% bw
-            iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, True, local)
-            
-            # TCP multicore
-            iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, False, machine.logical_cpus)
+        # Run for each direction
+        for d in dirs:
+            print(f"Beginning iperf3 {d}")
+            bidir = (d == "bidir")
+            if "iperf-bw" in test_args:
+                for bw in bws:
+                    # TCP 100% bw
+                    iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, False, local, bidir)
 
-            # UDP multicore
-            iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, True, machine.logical_cpus)
+                    # UDP 100% bw
+                    iperf3_test_single(machine, kernel_ver, MAX_PKT_SZ, bw, True, local, bidir)
+                    
+                    # TCP multicore
+                    iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, False, machine.logical_cpus, bidir)
 
-        for sz in pkt_sizes:
-            # TCP 100% bw
-            iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, False, local)
+                    # UDP multicore
+                    iperf3_test_multi(machine, kernel_ver, MAX_PKT_SZ, bw, True, machine.logical_cpus, bidir)
 
-            # UDP 100% bw
-            iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, True, local)
-                
-            # TCP multicore
-            iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, False, machine.logical_cpus)
+            if "iperf-pktsize" in test_args:
+                for sz in pkt_sizes:
+                    # TCP 100% bw
+                    iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, False, local, bidir)
 
-            # UDP multicore
-            iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, True, machine.logical_cpus)
+                    # UDP 100% bw
+                    iperf3_test_single(machine, kernel_ver, sz, TARGET_BW, True, local, bidir)
+                        
+                    # TCP multicore
+                    iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, False, machine.logical_cpus, bidir)
 
+                    # UDP multicore
+                    iperf3_test_multi(machine, kernel_ver, sz, TARGET_BW, True, machine.logical_cpus, bidir)
 
-            # # TCP 10% bw
-            # iperf3_test_single(machine, kernel_ver, sz, int(TARGET_BW/10), False, local)
+        if "ipbench" in test_args:
+            print("Starting ipbench...")
+            # Invoke ipbench tests
+            os.system(f"../../runbench/runbenchnocpu > {kernel_ver}-{machine.name}")
+            os.system(f"../../runbench/stopbench")
+            time.sleep(5)
+            print(f"Done testing.")
+            exit(0)
 
-            # # UDP 10% bw
-            # iperf3_test_single(machine, kernel_ver, sz, int(TARGET_BW/10), True, local)
-        
-
-        time.sleep(5)
-        print(f"Done testing.")
-        exit(0)
+        # Terminate connection via testerwait
+        sock.sendto(b"Ostritch", (machine.ip, 1345))
+    
     return pid
 
 
 
-def iperf3_test_single(machine, kernel_ver, pkt_size, bw, udp, local):
+def iperf3_test_single(machine, kernel_ver, pkt_size, bw, udp, local, bidir):
     """
     Run an iperf3 test in a one-one test - one client and one server both single threaded.
     NOTE: if not using this with the local flag, it will not work outside of the TS network.
     """
     time.sleep(5)
     print(f"Testing {machine.ip} - {pkt_size} bytes - {bw}")
-    iperf_common = f"-c {machine.ip} -t 50 -J --connect-timeout 5000 -p 5000 --bidir"
+    iperf_common = f"-c {machine.ip} -t 50 -J --connect-timeout 5000 -p 5000"
+    if bidir:
+        iperf_common += " --bidir"
+
     f = ""
     if local:
         if udp:
@@ -145,17 +162,19 @@ def iperf3_test_single(machine, kernel_ver, pkt_size, bw, udp, local):
         print(f"Local test {f} done.")
     else:
         # for each of these: run command on vb01, scp logfile back
+        p = "tcp"
         if udp:
-            os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f /tmp/iperf3-log && iperf3 {iperf_common} -b {bw}M -u --logfile /tmp/iperf3-log --length {pkt_size}' && \
-                scp vb01.keg.cse.unsw.edu.au:/tmp/iperf3-log {out_dir}/{machine.name}/{kernel_ver}/iperf3-st-udp-{bw}m-{pkt_size}.test")
-            print(f"Test {pkt_size}-{bw}-udp complete.\n")
-        else:
-            os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f /tmp/iperf3-log && iperf3 {iperf_common} -b {bw}M --logfile /tmp/iperf3-log --set-mss {pkt_size}' && \
-                scp vb01.keg.cse.unsw.edu.au:/tmp/iperf3-log {out_dir}/{machine.name}/{kernel_ver}/iperf3-st-tcp-{bw}m-{pkt_size}.test")
-            print(f"Test {pkt_size}-{bw}-tcp complete.\n")
+            p = "udp"
+        if bidir:
+            p += ".bidir"
+        
+        os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f /tmp/iperf3-log && iperf3 {iperf_common} -b {bw}M -u --logfile /tmp/iperf3-log --length {pkt_size}' && \
+            scp vb01.keg.cse.unsw.edu.au:/tmp/iperf3-log {out_dir}/{machine.name}/{kernel_ver}/iperf3-st-{p}-{bw}m-{pkt_size}.test")
+        print(f"Test {pkt_size}-{bw}-udp complete.\n")
+        
     time.sleep(3)
 
-def iperf3_test_multi(machine, kernel_ver, pkt_size, bw, udp, num_cpus):
+def iperf3_test_multi(machine, kernel_ver, pkt_size, bw, udp, num_cpus, bidir):
     """
     Run multicore tests on num_cpus.
     """
@@ -167,6 +186,8 @@ def iperf3_test_multi(machine, kernel_ver, pkt_size, bw, udp, num_cpus):
     iperf_common = f"-c {machine.ip} -t 50 -J --connect-timeout 5000 -b {int(bw/num_cpus)}M --length {pkt_size} --bidir"
     if udp:
         iperf_common += " -u"
+    if bidir:
+        iperf_common += " --bidir"
     
     # spin up testers 2..8
     for i in range(1, num_cpus):
@@ -180,10 +201,13 @@ def iperf3_test_multi(machine, kernel_ver, pkt_size, bw, udp, num_cpus):
 
     for i in range(0, num_cpus):
         print(f"Getting info from vb0{str(i+1)}")
+        p = "tcp"
         if udp:
-            os.system(f"scp vb0{str(i+1)}.keg.cse.unsw.edu.au:/tmp/mtlog {out_dir}/{machine.name}/{kernel_ver}/iperf3-mt{i}-udp-{bw}m-{pkt_size}.test")
-        else:
-            os.system(f"scp vb0{str(i+1)}.keg.cse.unsw.edu.au:/tmp/mtlog {out_dir}/{machine.name}/{kernel_ver}/iperf3-mt{i}-tcp-{bw}m-{pkt_size}.test")
+            p = "udp"
+        if bidir:
+            p += ".bidir"
+        
+        os.system(f"scp vb0{str(i+1)}.keg.cse.unsw.edu.au:/tmp/mtlog {out_dir}/{machine.name}/{kernel_ver}/iperf3-mt{i}-{p}-{bw}m-{pkt_size}.test")
     return
 
 def logfile(machine, kernel_ver, title):
@@ -199,7 +223,11 @@ def tests_exist(machine, kernel_ver):
 
 # Test test for standalone testing of this test
 if __name__ == "__main__":
+    import sys
+    from kernelmark import DEFAULT_TESTFLAGS
+    if len(sys.argv) != 2:
+        print("USAGE: test.py [machine]")
     mf = json.load(open("../conf/machines.json"))
-    m = Machine("imx8mm", mf["imx8mm"])
-    test(m, "debian_bullseye", False)
+    m = Machine(sys.argv[1], mf[sys.argv[1]])
+    test(m, "debian_bullseye", False, DEFAULT_TESTFLAGS)
     exit()

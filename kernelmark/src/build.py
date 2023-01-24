@@ -101,8 +101,8 @@ def write_kernel_headers(kernel_ver, file):
                 file.write(f"# {version[:len(version)-1]} is not set\n")
 
         # If version is later than 5.16, use 5.16 headers because they are the same
-        if int(vvv[0]) > 5 and int(vvv[1]) >= 16:
-            file.write("BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_5_16=y\n")
+        if int(vvv[0]) >= 6 and int(vvv[1]) >= 0:
+            file.write("BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_6_0=y\n")
         
         # If version is earlier than 3, use very old 
         elif int(vvv[0]) < 3:
@@ -126,9 +126,9 @@ def write_kernel_headers(kernel_ver, file):
                 file.write(f"BR2_TOOLCHAIN_HEADERS_AT_LEAST_{major}_{minor}=n\n")
     
     # Write final at least
-    if int(vvv[0]) >= 5 and (int(vvv[1]) >= 16 or int(vvv[0]) > 5):
-        file.write("BR2_TOOLCHAIN_HEADERS_AT_LEAST=\"\"\n")
-        file.write(f"BR2_DEFAULT_KERNEL_HEADERS=\"5.16\"\n")
+    if int(vvv[0]) >= 6 and (int(vvv[1]) >= 0):
+        file.write("BR2_TOOLCHAIN_HEADERS_AT_LEAST=\"6.0\"\n")
+        file.write(f"BR2_DEFAULT_KERNEL_HEADERS=\"6.0.19\"\n")
     else:
         file.write(f"BR2_TOOLCHAIN_HEADERS_AT_LEAST=\"{vvv[0]}.{vvv[1]}\"\n")
         file.write(f"BR2_DEFAULT_KERNEL_HEADERS=\"{vvv[0]}.{vvv[1]}\"\n")

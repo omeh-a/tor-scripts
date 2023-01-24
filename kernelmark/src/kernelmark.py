@@ -19,12 +19,20 @@ from logfile import *
 
 NUM_ARGS = 2    # mandatory arguments
 MAX_FAILS = 8   # maximum number of consecutive build failures
-
+DEFAULT_TESTFLAGS = [
+    "ipbench",
+    "iperf-bw",
+    "unidir",
+    "bidir"
+]
 tester_pid = 0
 
 def usage():
     print("USAGE: kernelmark [system] [kernels.json] [flags]")
     print(" FLAGS: \n   hardclean - nuke output directory\n   clean - clean output directory for this system")
+    print(" TEST ARGS: \n   ipbench - run ipbench tests \n   iperf - run all iperf3 tests\n\
+   iperf-bw - run iperf3 tests varying bw\n   iperf-pktsize - run iperf3 tests varying packet size\n\
+   bidir - run iperf in bidirectional mode (default unidirectional)\n   bibidir - run iperf in bi and unidirectional mode.")
     exit()
 
 
@@ -63,21 +71,48 @@ def main():
     skipdone = False
     buildonly = False
     local = False
+    testflags = []
     # Collect remaining flags
     for i in range(NUM_ARGS + 1, len(sys.argv)):
+        
+        # Build flags
         if sys.argv[i] == "hardclean":
             build.nuke_output()
         elif sys.argv[i] == "clean":
             build.clean(m.name)
-        elif sys.argv[i] == "skipdone":
-            skipdone = True
         elif sys.argv[i] == "buildonly":
             buildonly = True
-        elif sys.argv[i] == "local":
+        
+        # Test flags
+        elif sys.argv[i] == "skipdone":
+            skipdone = True
+        elif sys.argv[i] == "local":            # Test without trying to use distributed load.
             local = True
+        elif sys.argv[i] == "ipbench":          # Run ipbench
+            testflags.append("ipbench")
+        elif sys.argv[i] == "iperf-pktsize":    # Run iperf varying packetsize
+            testflags.append("iperf-pktsize")
+        elif sys.argv[i] == "iperf-bw":         # Run iperf varying target bandwidth
+            testflags.append("iperf-bw")
+        elif sys.argv[i] == "iperf":            # Run all iperf tests
+            testflags.append("iperf-bw")
+            testflags.append("iperf-pktsize")
+        elif sys.argv[i] == "bidir":            # Run iperf in bidirectional mode
+            testflags.append("bidir")
+        elif sys.argv[i] == "bibidir":          # Run iperf in bidirectional AND single directional mode
+            testflags.append("bidir")
+            testflags.append("unidir")              
         else:
             print(f"Unknown flag: {sys.argv[i]} - continuing.")
+    # Default test flags
+    if testflags == []:
+        for f in DEFAULT_TESTFLAGS:
+            testflags.append(f)
 
+    # Default to unidirectional
+    if "bidir" not in testflags:
+        testflags.append("unidir")
+    
     num_fails = 0  # consequetive build failures - if this exceeds MAX_FAILS, we stop
 
     alert(f"kernelmark started. target: {machine} kernels: {kernels_file}.")
@@ -124,7 +159,7 @@ def main():
 
             # Summon test process first, since we want to keep the status of the deployment
             # in the parent thread (because failing to deploy is a fatal error and should stop us)
-            tester_pid = test.test(m, kernel, local)
+            tester_pid = test.test(m, kernel, local, testflags)
             
             status = deploy.deploy(m, kernel)
             if status:
