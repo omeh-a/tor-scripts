@@ -3,6 +3,13 @@ Scripts for Linux Networking stuff
 
 This repo contains most of the stuff for my ToR project.
 
+## Dependencies
+
+`arp-scan`
+`ipbench`
+`iperf3`
+
+
 ## kernelmark
 
 The main portion of this repo. Automated building and testing of Linux kernels, targeting PXELinux systems. See `/kernelmark/README.md`.

@@ -159,10 +159,11 @@ def iperf3_test_single(machine, kernel_ver, pkt_size, bw, udp, local, bidir):
         p = "tcp"
         if udp:
             p = "udp"
+            iperf_common += " -u"
         if bidir:
             p += ".bidir"
         
-        os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f /tmp/iperf3-log && iperf3 {iperf_common} -b {bw}M -u --logfile /tmp/iperf3-log --length {pkt_size}' && \
+        os.system(f"on -h vb01.keg.cse.unsw.edu.au -c 'rm -f /tmp/iperf3-log && iperf3 {iperf_common} -b {bw}M --logfile /tmp/iperf3-log --length {pkt_size}' && \
             scp vb01.keg.cse.unsw.edu.au:/tmp/iperf3-log {out_dir}/{machine.name}/{kernel_ver}/iperf3-st-{p}-{bw}m-{pkt_size}.test")
         print(f"Test {pkt_size}-{bw}-udp complete.\n")
         

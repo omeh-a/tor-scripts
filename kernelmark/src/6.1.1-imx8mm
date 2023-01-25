@@ -1,4 +1,4 @@
-IP benchmark run at Tue 24 Jan 2023 13:19:51 AEDT
+IP benchmark run at Tue 24 Jan 2023 19:22:39 AEDT
 Target=imx8mm.iot.keg.cse.unsw.edu.au 
 Using VBs numbers: 01
 02
@@ -15,3 +15,12 @@ Type = udp
 Using warmup 10 cooldown 6
 Testing packets of  1472
 9748344 test started!
+19496688 test started!
+29245033 test started!
+38993377 test started!
+48741721 test started!
+58490066 test started!
+68238410 test started!
+77986754 test started!
+87735099 test started!
+Ipbench failed : HELLO to vb01 failed (421 SERVICE NOT AVAILABLE)

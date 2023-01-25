@@ -119,8 +119,8 @@ def finalise_iperf3(out_dir, machine_name):
     Generate iperf3 results for all available result files
     """               
     r = iperf_results(out_dir, machine_name)
-    iperf3_st_graphs_throughput(r, True)
-    iperf3_st_graphs_throughput(r, False)
+    iperf3_st_graphs_throughput_bidir(r, True)
+    iperf3_st_graphs_throughput_bidir(r, False)
     iperf3_st_graphs_latency(r)
     iperf3_st_graphs_cpu(r)
     # iperf3_mt_graphs_throughput(r)
@@ -130,7 +130,8 @@ def finalise_iperf3(out_dir, machine_name):
     # iperf3_st_graphs_sendrecv_throughput(r)
     
 
-def iperf3_st_graphs_throughput(results, reverse):
+
+def iperf3_st_graphs_throughput_bidir(results, reverse):
     """
     Generates plots of throughput against packet size for UDP/TCP results
     """
@@ -140,64 +141,66 @@ def iperf3_st_graphs_throughput(results, reverse):
 
 
     # TCP
-    plt.clf()
-    y_largest_range = []
-    for kernel in results.kernels:
-        test = results.get_st_test_pktsize_tcp(kernel)
-        if test == None:
-            continue
-        
+    if len(results.tcp_st_tests) != 0:
+        print(f"{results.machinename} - ST Throughtput - TCP targeting 1000Mb/s")
+        plt.clf()
+        y_largest_range = []
+        for kernel in results.kernels:
+            test = results.get_st_test_pktsize_tcp(kernel)
+            if test == None:
+                continue
+            
+            if not test.bidir:
+                continue # skip unidirectional tests 
 
-        print(test)
-        # print(test[0])
+            for element in test[throughput_type]:
+                y_largest_range.append(element)
 
-        # if y_largest_range == [] or max(y_largest_range) < max(test[throughput_type]):
-        for element in test[throughput_type]:
-            y_largest_range.append(element)
 
+            plt.plot(test["pkt_szs"], test[throughput_type], label=f"{kernel}")
         plt.xlabel("Packet sizes (bytes)")
         plt.ylabel("Throughput (MBit/s)")
-        #pkt_ticks(packet_sizes)
-        # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-        plt.plot(test["pkt_szs"], test[throughput_type], label=f"{kernel}")
-    plt.title(f"{results.machinename} - ST Throughtput - TCP targeting 1000Mb/s")
-    plt.yticks(ticks(y_largest_range, 10))
-    ax = plt.gca()
-    ax.yaxis.set_major_formatter('{x:9<5.1f}')
-    ax.legend()
-    s = f"../results/{results.machinename}-st-1000m-TCP-{throughput_type}.png"
-    plt.savefig(s)  
-    print(f"Saved {s}")
+        plt.title(f"{results.machinename} - ST Throughtput - TCP targeting 1000Mb/s")
+        plt.yticks(ticks(y_largest_range, 10))
+        ax = plt.gca()
+        ax.yaxis.set_major_formatter('{x:9<5.1f}')
+        ax.legend()
+        s = f"../results/{results.machinename}-st-1000m-TCP-{throughput_type}.png"
+        plt.savefig(s)  
+        print(f"Saved {s}")
 
-    # UDP
-    plt.clf()
-    y_largest_range = []
-    for kernel in results.kernels:
-        test = results.get_st_test_pktsize_udp(kernel)
-        if test == None:
-            continue
-        
+    if len(results.udp_st_tests) != 0:
+        # UDP
+        plt.clf()
+        y_largest_range = []
+        for kernel in results.kernels:
+            test = results.get_st_test_pktsize_udp(kernel)
+            if test == None:
+                continue
+            if not test.bidir:
+                continue # skip unidirectional tests 
 
-        print(test)
-        # print(test[0])
 
-        # if y_largest_range == [] or max(y_largest_range) < max(test[throughput_type]):
-        for element in test[throughput_type]:
-            y_largest_range.append(element)
+            print(test)
+            
 
-        plt.xlabel("Packet sizes (bytes)")
-        plt.ylabel("Throughput (MBit/s)")
-        #pkt_ticks(packet_sizes)
-        # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-        plt.plot(test["pkt_szs"], test[throughput_type], label=f"{kernel}")
-    plt.title(f"{results.machinename} - ST {throughput_type} - UDP targeting 1000Mb/s")
-    plt.yticks(ticks(y_largest_range, 10))
-    ax = plt.gca()
-    ax.yaxis.set_major_formatter('{x:9<5.1f}')
-    ax.legend()
-    s = f"../results/{results.machinename}-st-1000m-UDP-{throughput_type}.png"
-    plt.savefig(s)  
-    print(f"Saved {s}")  
+            # if y_largest_range == [] or max(y_largest_range) < max(test[throughput_type]):
+            for element in test[throughput_type]:
+                y_largest_range.append(element)
+
+            plt.xlabel("Packet sizes (bytes)")
+            plt.ylabel("Throughput (MBit/s)")
+            #pkt_ticks(packet_sizes)
+            # plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+            plt.plot(test["pkt_szs"], test[throughput_type], label=f"{kernel}")
+        plt.title(f"{results.machinename} - ST {throughput_type} - UDP targeting 1000Mb/s")
+        plt.yticks(ticks(y_largest_range, 10))
+        ax = plt.gca()
+        ax.yaxis.set_major_formatter('{x:9<5.1f}')
+        ax.legend()
+        s = f"../results/{results.machinename}-st-1000m-UDP-{throughput_type}.png"
+        plt.savefig(s)  
+        print(f"Saved {s}")  
 
 
 def iperf3_st_graphs_latency(results):
@@ -211,6 +214,8 @@ def iperf3_st_graphs_latency(results):
         if test == None:
             continue
         
+        if test.bidir:
+            continue
 
         print(test)
         # print(test[0])
@@ -243,6 +248,12 @@ def iperf3_st_graphs_cpu(results):
     for kernel in results.kernels:
         test = results.get_st_test_pktsize_tcp(kernel)
         if test == None:
+            continue
+        
+        if test == None:
+            continue
+        
+        if test.bidir:
             continue
 
         for element in test["cpu"]:
@@ -583,36 +594,35 @@ class iperf_results():
                     throughput_send = 0.0
                     throughput_receive = 0.0
                     if "bidir" in iperf_out.split("-")[2]:
-                        throughput_send = float(result["end"]["sum_sent"]["bits_per_second"] / (10**6)),
-                        throughput_receive = float(result["end"]["sum_sent_bidir_reverse"]["bits_per_second"] / (10**6)),
+                        throughput_send = float(result["end"]["sum_sent"]["bits_per_second"] / (10**6))
+                        throughput_receive = float(result["end"]["sum_sent_bidir_reverse"]["bits_per_second"] / (10**6))
                     else:
-                        throughput_send = float(result["end"]["sum_sent"]["bits_per_second"] / (10**6)),
+                        throughput_send = float(result["end"]["sum_sent"]["bits_per_second"] / (10**6))
+                    
+                    # cpu
+                    cpu = result["end"]["cpu_utilization_percent"]["host_total"]
 
-                    if protocol == "tcp":
-                        test = {
-                            "packet_sz" : iperf_out.split("-")[4].split(".")[0],
-                            "bw" : bw,
-                            "rtt" : result["end"]["streams"][0]["sender"]["mean_rtt"],
-                            "cpu" : result["end"]["cpu_utilization_percent"]["host_total"],
-                            "throughput_send" : throughput_send,
-                            "throughput_receive" : throughput_receive,
-                            # "raw" : result,
-                            "bidir" : ("bidir" in iperf_out.split("-")[2])
-                        }
-                    else:
-                        test = {
-                            "packet_sz" : iperf_out.split("-")[4].split(".")[0],
-                            "bw" : bw,
-                            "cpu" : result["end"]["cpu_utilization_percent"]["host_total"],
-                            "throughput_send" : throughput_send,
-                            "throughput_receive" : throughput_receive,
-                            # "raw" : result,
-                            "bidir" : ("bidir" in iperf_out.split("-")[2])
-                        }
+                    # rtt
+                    rtt = 0.0
+                    if bw == "tcp":
+                        rtt = result["end"]["streams"][0]["sender"]["mean_rtt"]
+
+                    test = {
+                        "packet_sz" : iperf_out.split("-")[4].split(".")[0],
+                        "bw" : bw,
+                        "rtt" : rtt,
+                        "cpu" : cpu,
+                        "throughput_send" : throughput_send,
+                        "throughput_receive" : throughput_receive,
+                        # "raw" : result,
+                        "bidir" : ("bidir" in iperf_out.split("-")[2])
+                    }
+                    
                     # check for mt/st
                     if iperf_out.split("-")[1] == "st":
                         # protocol
                         if protocol == "udp":
+                            print("tcp test")
                             self.udp_st_tests = self.append_dict(self.udp_st_tests, test, bw, -1, kernel)
                         else:
                             self.tcp_st_tests = self.append_dict(self.tcp_st_tests, test, bw, -1, kernel)
@@ -622,7 +632,7 @@ class iperf_results():
                             self.udp_mt_tests = self.append_dict(self.udp_mt_tests, test, bw, mt_num, kernel)
                         else:
                             self.tcp_mt_tests = self.append_dict(self.tcp_mt_tests, test, bw, mt_num, kernel)
-    
+
     # x vs packet size tests
 
     def get_st_test_pktsize_udp(self, kernel):
@@ -902,8 +912,6 @@ class iperf_results():
         Return tests of bandwidth vs. achieved throughput for TCP. Sorted by bandwidth
         """
         return self.get_mt_test_bw(kernel, self.tcp_mt_tests)
-
-
 
     def append_dict(self, target, test, bw, mt, kernel):
         """
