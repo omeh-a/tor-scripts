@@ -1,0 +1,5 @@
+{
+    "buildroot-dir" : "/home/mattr/util/buildroot-2022.02.7",
+    "output-dir" : "/home/mattr/tor-scripts/kernelmark/output",
+    "br-conf-dir" : "/home/mattr/tor-scripts/kernelmark/br_configs"
+}

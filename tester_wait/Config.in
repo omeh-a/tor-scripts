@@ -1,7 +1,0 @@
-config BR2_PACKAGE_TESTERWAIT
-	bool "tester_wait"
-	help
-	  
-	  Simple program which waits for a UDP message on port 1345.
-
-	  https://github.com/omeh-a/tor-scripts
